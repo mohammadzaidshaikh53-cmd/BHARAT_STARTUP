@@ -1,30 +1,32 @@
-'use client'
+'use client';
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { supabase } from '@/lib/supabase';
+import { Button } from '@/components/common/Button'; // added
 
 const formatWhatsAppLink = (number) => {
-  if (!number) return '#'
-  let cleaned = String(number).replace(/\D/g, '')
-  if (!cleaned.startsWith('91')) cleaned = `91${cleaned}`
-  return `https://wa.me/${cleaned}`
-}
+  if (!number) return '#';
+  let cleaned = String(number).replace(/\D/g, '');
+  if (!cleaned.startsWith('91')) cleaned = `91${cleaned}`;
+  return `https://wa.me/${cleaned}`;
+};
 
 const getRelativeTime = (timestamp) => {
-  if (!timestamp) return null
-  const date = new Date(timestamp)
-  const now = new Date()
-  const diffMs = now - date
-  const diffMins = Math.floor(diffMs / 60000)
-  const diffHours = Math.floor(diffMs / 3600000)
-  const diffDays = Math.floor(diffMs / 86400000)
-  if (diffMins < 60) return `${diffMins} min ago`
-  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`
-  return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`
-}
+  if (!timestamp) return null;
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+  if (diffMins < 60) return `${diffMins} min ago`;
+  if (diffHours < 24) return `${diffHours} hour${diffHours > 1 ? 's' : ''} ago`;
+  return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+};
 
 const getLocationColor = (location) => {
-  if (!location) return 'bg-gray-100 text-gray-800'
+  if (!location) return 'bg-gray-100 text-gray-800';
   const colors = {
     mumbai: 'bg-purple-100 text-purple-800',
     delhi: 'bg-blue-100 text-blue-800',
@@ -32,81 +34,85 @@ const getLocationColor = (location) => {
     pune: 'bg-indigo-100 text-indigo-800',
     chennai: 'bg-yellow-100 text-yellow-800',
     kolkata: 'bg-pink-100 text-pink-800',
-  }
-  const key = location.toLowerCase()
-  return colors[key] || 'bg-gray-100 text-gray-800'
-}
+  };
+  const key = location.toLowerCase();
+  return colors[key] || 'bg-gray-100 text-gray-800';
+};
 
 export default function HomePage() {
-  const [products, setProducts] = useState([])
-  const [requests, setRequests] = useState([])
-  const [filteredProducts, setFilteredProducts] = useState([])
-  const [searchTerm, setSearchTerm] = useState('')
-  const [activeCategory, setActiveCategory] = useState('all')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [products, setProducts] = useState([]);
+  const [requests, setRequests] = useState([]);
+  const [filteredProducts, setFilteredProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
 
-  const categories = ['all', 'Food', 'Fitness', 'Tech', 'Services', 'Handloom', 'Electronics']
+  const categories = ['all', 'Food', 'Fitness', 'Tech', 'Services', 'Handloom', 'Electronics'];
 
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user || null);
+    });
     const fetchData = async () => {
       try {
         const { data: productsData, error: productsError } = await supabase
           .from('products')
           .select('*')
-          .order('created_at', { ascending: false })
-        if (productsError) throw productsError
+          .order('created_at', { ascending: false });
+        if (productsError) throw productsError;
 
         const { data: requestsData, error: requestsError } = await supabase
           .from('requests')
           .select('*')
-          .order('created_at', { ascending: false })
-        if (requestsError) throw requestsError
+          .order('created_at', { ascending: false });
+        if (requestsError) throw requestsError;
 
-        setProducts(productsData || [])
-        setRequests(requestsData || [])
-        setFilteredProducts(productsData || [])
+        setProducts(productsData || []);
+        setRequests(requestsData || []);
+        setFilteredProducts(productsData || []);
       } catch (err) {
-        setError(err.message)
-        console.error(err)
+        setError(err.message);
+        console.error(err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
-    fetchData()
-  }, [])
+    };
+    fetchData();
+  }, []);
 
   useEffect(() => {
-    let filtered = [...products]
+    let filtered = [...products];
     if (activeCategory !== 'all') {
       filtered = filtered.filter(p =>
         (p.category || "").toLowerCase().trim() === activeCategory.toLowerCase().trim()
-      )
+      );
     }
     if (searchTerm.trim()) {
-      const term = searchTerm.toLowerCase().trim()
+      const term = searchTerm.toLowerCase().trim();
       filtered = filtered.filter(p =>
         (p.name || "").toLowerCase().includes(term) ||
         (p.category || "").toLowerCase().includes(term) ||
         (p.location || "").toLowerCase().includes(term) ||
         (p.company_name || "").toLowerCase().includes(term)
-      )
+      );
     }
-    setFilteredProducts(filtered)
-  }, [searchTerm, activeCategory, products])
+    setFilteredProducts(filtered);
+  }, [searchTerm, activeCategory, products]);
 
   const hotRequests = [...requests].sort((a, b) => {
-    if (!a.created_at) return 1
-    if (!b.created_at) return -1
-    return new Date(b.created_at) - new Date(a.created_at)
-  }).slice(0, 3)
+    if (!a.created_at) return 1;
+    if (!b.created_at) return -1;
+    return new Date(b.created_at) - new Date(a.created_at);
+  }).slice(0, 3);
 
   if (loading) {
     return (
       <main className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-gray-500">Loading marketplace...</div>
       </main>
-    )
+    );
   }
 
   if (error) {
@@ -119,7 +125,7 @@ export default function HomePage() {
           </button>
         </div>
       </main>
-    )
+    );
   }
 
   return (
@@ -138,7 +144,12 @@ export default function HomePage() {
                 Connect Indian startups with real buyers
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 items-center">
+              {user ? (
+                <span className="text-sm text-gray-600">👋 {user.email}</span>
+              ) : (
+                <a href="/login" className="text-sm text-orange-600 hover:underline">Login</a>
+              )}
               <a
                 href="/add-product"
                 className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-full text-sm font-medium transition shadow-sm"
@@ -151,6 +162,12 @@ export default function HomePage() {
               >
                 + Post Requirement
               </a>
+              {/* CHAT BUTTON added here */}
+              <Link href="/chat">
+                <Button variant="primary" size="md">
+                  💬 Chat
+                </Button>
+              </Link>
             </div>
           </div>
 
@@ -182,6 +199,7 @@ export default function HomePage() {
         </div>
       </header>
 
+      {/* Rest of the page unchanged */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {hotRequests.length > 0 && (
           <section className="mb-12 bg-orange-50 rounded-2xl p-6">
@@ -193,7 +211,7 @@ export default function HomePage() {
                 const matchingCount = products.filter(p =>
                   (p.category || "").toLowerCase().includes((req.category || "").toLowerCase()) ||
                   (req.category || "").toLowerCase().includes((p.category || "").toLowerCase())
-                ).length
+                ).length;
                 return (
                   <div key={req.id || `hot-${idx}`} className="bg-white rounded-xl shadow-sm p-4">
                     <h3 className="font-semibold">{req.title}</h3>
@@ -221,7 +239,7 @@ export default function HomePage() {
                       Sell to Buyer
                     </a>
                   </div>
-                )
+                );
               })}
             </div>
           </section>
@@ -246,31 +264,33 @@ export default function HomePage() {
                 const matchingRequests = requests.filter(req =>
                   (req.category || "").toLowerCase().includes((product.category || "").toLowerCase()) ||
                   (product.category || "").toLowerCase().includes((req.category || "").toLowerCase())
-                ).length
+                ).length;
                 return (
                   <div
                     key={product.id || `prod-${idx}`}
                     className="bg-white rounded-2xl shadow-md hover:shadow-lg transition duration-200 overflow-hidden flex flex-col"
                   >
-                    {product.image_url ? (
-                      <img
-                        src={product.image_url}
-                        alt={product.name}
-                        className="w-full h-40 object-cover"
-                      />
-                    ) : (
-                      <div className="w-full h-40 bg-gray-100 flex items-center justify-center text-gray-400">
-                        📷 No image
-                      </div>
-                    )}
+                    <a href={`/products/${product.id}`} className="block">
+                      {product.image_url ? (
+                        <img
+                          src={product.image_url}
+                          alt={product.name}
+                          className="w-full h-40 object-cover"
+                        />
+                      ) : (
+                        <div className="w-full h-40 bg-gray-100 flex items-center justify-center text-gray-400">
+                          📷 No image
+                        </div>
+                      )}
+                    </a>
                     <div className="p-5 flex flex-col flex-grow">
                       <div className="flex items-start justify-between">
-                        <a href={`/products/${product.id}`} className="block hover:underline">
-                          <h3 className="text-lg font-semibold text-gray-900">
+                        <a href={`/products/${product.id}`} className="hover:underline">
+                          <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
                             {product.name}
                           </h3>
                         </a>
-                        {product.verified && (
+                        {product.verification_status === 'verified' && (
                           <span className="bg-green-100 text-green-700 text-xs px-2 py-0.5 rounded-full">
                             ✅ Verified
                           </span>
@@ -314,7 +334,7 @@ export default function HomePage() {
                       </a>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           )}
@@ -341,7 +361,7 @@ export default function HomePage() {
                 const matchingProducts = products.filter(p =>
                   (p.category || "").toLowerCase().includes((req.category || "").toLowerCase()) ||
                   (req.category || "").toLowerCase().includes((p.category || "").toLowerCase())
-                ).length
+                ).length;
                 return (
                   <div
                     key={req.id || `req-${idx}`}
@@ -384,7 +404,7 @@ export default function HomePage() {
                       </a>
                     </div>
                   </div>
-                )
+                );
               })}
             </div>
           )}
@@ -406,5 +426,5 @@ export default function HomePage() {
         </a>
       </div>
     </main>
-  )
+  );
 }
