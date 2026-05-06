@@ -1,0 +1,39 @@
+HUB
+├── Attention Engine
+│   ├── Blog
+│   ├── Idea Sharing
+│   ├── Business Biographies
+│   └── Motivational Content
+│
+├── Community Engine
+│   ├── No-BS Q&A
+│   ├── Discussions
+│   └── Replies / Reputation
+│
+├── Discovery Engine
+│   ├── Marketplace
+│   ├── Ads
+│   ├── Brands
+│   ├── Creator Storefronts
+│   ├── Service Directory
+│   └── Local Business Finder
+│
+├── Matching Engine
+│   ├── B2B Matchmaking
+│   ├── Location Detection
+│   ├── Category Matching
+│   └── Logistics / CA Matching
+│
+├── Transaction Engine
+│   ├── Deal Flow
+│   ├── Premium Vintage Market
+│   ├── Virtual Exhibitions
+│   └── Paid Visibility
+│
+└── Trust & Intelligence Layer
+    ├── Verification
+    ├── Anti-Scam Controls
+    ├── Moderation
+    ├── Ranking Algorithms
+    ├── AI Tools
+    └── Analytics

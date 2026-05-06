@@ -1,13 +1,14 @@
 'use client';
 
 import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 
 import { ChatList } from '@/components/chat/ChatList';
 import { ChatRoom } from '@/components/chat/ChatRoom';
 import { GroupInfoPanel } from '@/components/panels/GroupInfoPanel';
-import { fadeSlide, slideFromRight } from '@/components/motion/variants';
+import { panelSlide } from '@/components/motion/variants';
 
 // ========== Skeleton loader ==========
 function SkeletonLoader() {
@@ -31,6 +32,7 @@ function NoChatSelected() {
 const PANEL_WIDTH = 320;
 
 export default function ChatPage() {
+  const router = useRouter();
   const [selectedRoomId, setSelectedRoomId] = useState(null);
   const [stableRoomId, setStableRoomId] = useState(null);
   const [currentUserId, setCurrentUserId] = useState(null);
@@ -40,30 +42,55 @@ export default function ChatPage() {
   const startTrapRef = useRef(null);
   const endTrapRef = useRef(null);
 
-  // ========== Auth ==========
+  // ========== PART 1: Auth guard — redirect if not logged in ==========
+  useEffect(() => {
+    const checkUser = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('Session check error:', error);
+          router.replace('/login?redirect=/chat');
+          return;
+        }
+
+        if (!session) {
+          router.replace('/login?redirect=/chat');
+          return;
+        }
+
+        setCurrentUserId(session.user.id);
+      } catch (err) {
+        console.error('Auth check failed:', err);
+        router.replace('/login?redirect=/chat');
+      } finally {
+        setLoadingUser(false);
+      }
+    };
+
+    checkUser();
+  }, [router]);
+
+  // ========== PART 2: Auth state listener ==========
   useEffect(() => {
     let mounted = true;
-    const getUser = async () => {
-      const { data, error } = await supabase.auth.getUser();
-      if (!mounted) return;
-      if (error) {
-        console.error('Auth error:', error);
-      } else {
-        setCurrentUserId(data.user?.id);
-      }
-      setLoadingUser(false);
-    };
-    getUser();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (mounted) setCurrentUserId(session?.user?.id ?? null);
+      if (!mounted) return;
+      
+      if (!session) {
+        router.replace('/login?redirect=/chat');
+        return;
+      }
+      
+      setCurrentUserId(session?.user?.id ?? null);
     });
 
     return () => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [router]);
 
   // ========== Debounce room switching ==========
   useEffect(() => {
@@ -83,7 +110,6 @@ export default function ChatPage() {
   // ========== Click outside (pointerdown with button guard) ==========
   useEffect(() => {
     const handleClickOutside = (e) => {
-      // Ignore right‑click and non‑primary buttons
       if (e.button && e.button !== 0) return;
       if (!showInfoPanel) return;
       if (panelRef.current && !panelRef.current.contains(e.target)) {
@@ -115,7 +141,6 @@ export default function ChatPage() {
   // ========== Focus management & body scroll ==========
   useEffect(() => {
     if (showInfoPanel && panelRef.current) {
-      // Focus first interactive element; fallback to panel itself
       const firstFocusable = panelRef.current.querySelector('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
       if (firstFocusable) {
         firstFocusable.focus();
@@ -139,20 +164,32 @@ export default function ChatPage() {
 
   // ========== Loading / auth guards ==========
   if (loadingUser) return <SkeletonLoader />;
+  
   if (!currentUserId) {
     return (
       <div className="flex items-center justify-center h-screen bg-bg-base text-text-primary">
-        Please log in to view chats.
+        <div className="text-center">
+          <p className="mb-2">Please log in to view chats.</p>
+          <button 
+            onClick={() => router.push('/login?redirect=/chat')}
+            className="text-accent-primary hover:underline text-sm"
+          >
+            Go to login
+          </button>
+        </div>
       </div>
     );
   }
 
-  // Future: wrap ChatRoom in <Suspense fallback={<SkeletonLoader />}>
   return (
     <div className="flex h-screen bg-bg-base text-text-primary overflow-hidden">
       {/* LEFT SIDEBAR */}
       <div className="w-[320px] md:w-80 flex-shrink-0 border-r border-white/10 bg-bg-raised/30 backdrop-blur-sm">
-        <ChatList onSelectRoom={setSelectedRoomId} selectedRoomId={selectedRoomId} />
+        <ChatList 
+          onSelectRoom={setSelectedRoomId} 
+          selectedRoomId={selectedRoomId} 
+          currentUserId={currentUserId}
+        />
       </div>
 
       {/* CENTER CHAT AREA */}
@@ -161,10 +198,9 @@ export default function ChatPage() {
           {stableRoomId ? (
             <motion.div
               key={stableRoomId}
-              variants={fadeSlide}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
               transition={{ type: 'spring', stiffness: 300, damping: 25 }}
               className="flex-1 flex flex-col"
             >
@@ -186,19 +222,24 @@ export default function ChatPage() {
           <motion.div
             ref={panelRef}
             tabIndex={-1}
-            variants={slideFromRight(PANEL_WIDTH)}
-            initial="hidden"
-            animate="visible"
-            exit="exit"
+            initial={{ x: PANEL_WIDTH, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: PANEL_WIDTH, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 260, damping: 25 }}
             style={{ width: PANEL_WIDTH }}
             className="flex-shrink-0 focus:outline-none"
           >
-            {/* Focus trap start */}
-            <div tabIndex={0} ref={startTrapRef} className="sr-only" />
-            <GroupInfoPanel roomId={stableRoomId} onClose={closeInfoPanel} />
-            {/* Focus trap end */}
-            <div tabIndex={0} ref={endTrapRef} className="sr-only" />
+            <div tabIndex={0} ref={startTrapRef} className="sr-only" aria-hidden="true" />
+            <GroupInfoPanel 
+              roomId={stableRoomId} 
+              onClose={closeInfoPanel}
+              onRoomRemoved={() => {
+                setSelectedRoomId(null);
+                setStableRoomId(null);
+              }}
+              currentUserId={currentUserId}
+            />
+            <div tabIndex={0} ref={endTrapRef} className="sr-only" aria-hidden="true" />
           </motion.div>
         )}
       </AnimatePresence>

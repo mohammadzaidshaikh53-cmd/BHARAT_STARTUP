@@ -1,0 +1,208 @@
+| table_name                 | column_name          | data_type                |
+| -------------------------- | -------------------- | ------------------------ |
+| admin_metrics              | avg_minutes_7d       | numeric                  |
+| admin_metrics              | rejection_rate       | double precision         |
+| admins                     | user_id              | uuid                     |
+| admins                     | created_at           | timestamp with time zone |
+| answers                    | id                   | uuid                     |
+| answers                    | question_id          | uuid                     |
+| answers                    | author_id            | uuid                     |
+| answers                    | content              | text                     |
+| answers                    | is_best_answer       | boolean                  |
+| answers                    | created_at           | timestamp with time zone |
+| answers                    | updated_at           | timestamp with time zone |
+| answers                    | is_deleted           | boolean                  |
+| answers                    | is_flagged           | boolean                  |
+| audit_log                  | id                   | uuid                     |
+| audit_log                  | table_name           | text                     |
+| audit_log                  | record_id            | uuid                     |
+| audit_log                  | action               | text                     |
+| audit_log                  | changed_by           | uuid                     |
+| audit_log                  | changed_at           | timestamp with time zone |
+| audit_log                  | old_data             | jsonb                    |
+| audit_log                  | new_data             | jsonb                    |
+| biographies_view           | id                   | uuid                     |
+| biographies_view           | title                | text                     |
+| biographies_view           | content              | text                     |
+| biographies_view           | excerpt              | text                     |
+| biographies_view           | featured_image       | text                     |
+| biographies_view           | founder_name         | text                     |
+| biographies_view           | company_name         | text                     |
+| biographies_view           | author_id            | uuid                     |
+| biographies_view           | created_at           | timestamp with time zone |
+| biographies_view           | published_at         | timestamp with time zone |
+| chat_messages              | id                   | uuid                     |
+| chat_messages              | room_id              | uuid                     |
+| chat_messages              | sender_id            | uuid                     |
+| chat_messages              | content              | text                     |
+| chat_messages              | created_at           | timestamp with time zone |
+| chat_messages              | updated_at           | timestamp with time zone |
+| chat_messages              | is_edited            | boolean                  |
+| chat_messages              | deleted_at           | timestamp with time zone |
+| chat_messages              | status               | text                     |
+| chat_participants          | id                   | uuid                     |
+| chat_participants          | room_id              | uuid                     |
+| chat_participants          | user_id              | uuid                     |
+| chat_participants          | joined_at            | timestamp with time zone |
+| chat_participants          | last_read_at         | timestamp with time zone |
+| chat_reports               | id                   | uuid                     |
+| chat_reports               | reporter_id          | uuid                     |
+| chat_reports               | room_id              | uuid                     |
+| chat_reports               | reported_user_id     | uuid                     |
+| chat_reports               | reason               | text                     |
+| chat_reports               | status               | text                     |
+| chat_reports               | created_at           | timestamp with time zone |
+| chat_rooms                 | id                   | uuid                     |
+| chat_rooms                 | name                 | text                     |
+| chat_rooms                 | is_group             | boolean                  |
+| chat_rooms                 | created_by           | uuid                     |
+| chat_rooms                 | created_at           | timestamp with time zone |
+| chat_rooms                 | updated_at           | timestamp with time zone |
+| chat_rooms                 | product_id           | uuid                     |
+| chat_rooms                 | buyer_id             | uuid                     |
+| chat_rooms                 | last_message         | text                     |
+| chat_rooms                 | last_message_at      | timestamp with time zone |
+| chat_rooms                 | last_message_user_id | uuid                     |
+| chat_unreads               | id                   | uuid                     |
+| chat_unreads               | room_id              | uuid                     |
+| chat_unreads               | user_id              | uuid                     |
+| chat_unreads               | unread_count         | integer                  |
+| chat_unreads               | last_message_at      | timestamp with time zone |
+| community_feed_v           | item_id              | text                     |
+| community_feed_v           | item_type            | text                     |
+| community_feed_v           | title                | text                     |
+| community_feed_v           | summary              | text                     |
+| community_feed_v           | author_id            | uuid                     |
+| community_feed_v           | author_name          | text                     |
+| community_feed_v           | created_at           | timestamp with time zone |
+| community_feed_v           | engagement_score     | double precision         |
+| community_feed_v           | content_type         | text                     |
+| community_feed_v           | original_id          | uuid                     |
+| community_feed_v           | tags                 | ARRAY                    |
+| content_categories         | id                   | uuid                     |
+| content_categories         | name                 | text                     |
+| content_categories         | slug                 | text                     |
+| content_categories         | description          | text                     |
+| content_categories         | parent_id            | uuid                     |
+| content_categories         | created_at           | timestamp with time zone |
+| content_engagement         | id                   | uuid                     |
+| content_engagement         | user_id              | uuid                     |
+| content_engagement         | post_id              | uuid                     |
+| content_engagement         | event_type           | text                     |
+| content_engagement         | created_at           | timestamp with time zone |
+| content_engagement         | target_type          | text                     |
+| content_engagement         | target_id            | uuid                     |
+| content_engagement_stats   | post_id              | uuid                     |
+| content_engagement_stats   | views                | integer                  |
+| content_engagement_stats   | likes                | integer                  |
+| content_engagement_stats   | shares               | integer                  |
+| content_engagement_stats   | comments             | integer                  |
+| content_engagement_stats   | read_completes       | integer                  |
+| content_engagement_stats   | updated_at           | timestamp with time zone |
+| content_engagement_summary | post_id              | uuid                     || pg_get_functiondef                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| CREATE OR REPLACE FUNCTION public.get_personalized_feed_v3(p_user_id uuid, p_limit integer DEFAULT 20, p_cursor_score double precision DEFAULT 1.0, p_cursor_id text DEFAULT NULL::text)
+ RETURNS TABLE(item_id text, item_type text, title text, summary text, author_id uuid, author_name text, created_at timestamp with time zone, likes integer, replies integer, engagement_score double precision, content_type text, original_id uuid, personalized_score double precision)
+ LANGUAGE plpgsql
+AS $function$
+declare
+    v_user_tags text[];
+begin
+    select array_agg(distinct interest_tag)
+    into v_user_tags
+    from public.user_interest_scores
+    where user_id = p_user_id and interest_weight > 0.05;
+
+    if v_user_tags is null then
+        v_user_tags := '{}';
+    end if;
+
+    return query
+    with base_data as (
+        select
+            f.item_id,
+            f.item_type,
+            f.title,
+            f.summary,
+            f.author_id,
+            f.author_name,
+            f.created_at,
+            f.likes,
+            f.replies,
+            f.engagement_score,
+            coalesce(f.content_type, f.item_type) as display_type,
+            f.original_id,
+            f.tags,
+            f.engagement_score as base_score
+        from public.community_feed_mv f
+    ),
+    scored as (
+        select
+            b.item_id,
+            b.item_type,
+            b.title,
+            b.summary,
+            b.author_id,
+            b.author_name,
+            b.created_at,
+            b.likes,
+            b.replies,
+            b.engagement_score,
+            b.display_type,
+            b.original_id,
+            b.tags,
+            b.base_score,
+            1.0 / (1 + extract(epoch from (now() - b.created_at)) / 3600.0) as recency_factor,
+            case when coalesce(b.tags, '{}') && v_user_tags then 0.3 else 0.0 end as interest_boost,
+            case
+                when b.display_type = 'idea' then 0.35
+                when b.display_type = 'blog' then 0.25
+                when b.display_type = 'question' then 0.30
+                else 0.1
+            end as type_weight
+        from base_data b
+    ),
+    final_scores as (
+        select
+            s.*,
+            s.base_score
+                + (s.base_score * s.interest_boost)
+                + (s.base_score * s.recency_factor)
+                + s.type_weight
+            as total_score
+        from scored s
+    )
+    select
+        f.item_id,
+        f.item_type,
+        f.title,
+        f.summary,
+        f.author_id,
+        f.author_name,
+        f.created_at,
+        f.likes,
+        f.replies,
+        f.engagement_score,
+        f.display_type as content_type,
+        f.original_id,
+        f.total_score as personalized_score
+    from final_scores f
+    where (
+        p_cursor_id is null
+        or f.total_score < p_cursor_score
+        or (f.total_score = p_cursor_score and f.item_id > p_cursor_id)
+    )
+    order by f.total_score desc, f.item_id desc
+    limit p_limit;
+end;
+$function$
+ |
+
+
+
+| item_id                                   | item_type | title     | summary     | author_id                            | author_name | created_at                    | likes | replies | engagement_score  | content_type | original_id                          | personalized_score |
+| ----------------------------------------- | --------- | --------- | ----------- | ------------------------------------ | ----------- | ----------------------------- | ----- | ------- | ----------------- | ------------ | ------------------------------------ | ------------------ |
+| post_ab190db2-b661-412c-a038-c593dee5723e | post      | awada     | aawdad      | 184f77d5-7ca9-4e76-ace8-a6c6f2a245d5 |             | 2026-05-04 06:20:55.34+00     | 0     | 0       | 0.439454659143487 | blog         | ab190db2-b661-412c-a038-c593dee5723e | 0.725620738178765  |
+| post_d1d6310c-55dd-42e2-8b3e-8d5a1b0dde9b | post      | ggfg      | gggg        | 184f77d5-7ca9-4e76-ace8-a6c6f2a245d5 |             | 2026-05-04 06:13:28.367+00    | 0     | 0       | 0.439390142355139 | blog         | d1d6310c-55dd-42e2-8b3e-8d5a1b0dde9b | 0.725185158134229  |
+| post_0c4bf013-f996-4d04-b3fe-2499cabd314a | post      | awdada    | awdawdawd…  | 184f77d5-7ca9-4e76-ace8-a6c6f2a245d5 |             | 2026-05-03 18:10:06.562+00    | 0     | 0       | 0.373204273517401 | blog         | 0c4bf013-f996-4d04-b3fe-2499cabd314a | 0.638542759002087  |
+| post_0a57a741-e0d1-45e4-8e8d-b3ad7e8d986b | post      | Test Post | Hello world | 33f82ae5-d838-48aa-9bcd-31213df47345 |             | 2026-05-03 15:23:08.361138+00 | 0     | 0       | 0.341798359454796 | blog         | 0a57a741-e0d1-45e4-8e8d-b3ad7e8d986b | 0.604404301498781  |
