@@ -1,4 +1,3 @@
-// components/panels/GroupInfoPanel.js
 'use client';
 
 import { useEffect, useState, useCallback, useRef } from 'react';
@@ -13,7 +12,6 @@ import {
   UserPlusIcon,
   UserMinusIcon,
   ShieldCheckIcon,
-  UserIcon,
   LinkIcon,
   ClipboardDocumentIcon,
   TrashIcon,
@@ -32,6 +30,7 @@ const slideFromRight = {
 export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }) {
   const router = useRouter();
   const [room, setRoom] = useState(null);
+  const [product, setProduct] = useState(null);
   const [participants, setParticipants] = useState([]);
   const [inviteCode, setInviteCode] = useState(null);
   const [inviteExpiry, setInviteExpiry] = useState(null);
@@ -40,26 +39,26 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
   const [copied, setCopied] = useState(false);
   const [generatingInvite, setGeneratingInvite] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
-  
+
   const [removingId, setRemovingId] = useState(null);
-  const [updatingRoleId, setUpdatingRoleId] = useState(null);
   const [leaving, setLeaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
+
   const [inviteError, setInviteError] = useState(null);
   const [actionError, setActionError] = useState(null);
   const [confirmAction, setConfirmAction] = useState(null);
-  
-  const [reportModal, setReportModal] = useState({ open: false, targetUserId: null, targetName: null });
+
+  const [reportModal, setReportModal] = useState({
+    open: false,
+    targetUserId: null,
+    targetName: null,
+  });
   const [reportReason, setReportReason] = useState('');
   const [reporting, setReporting] = useState(false);
-  
+
   const debounceRef = useRef(null);
   const abortControllerRef = useRef(null);
 
-  // ---------------------------------------------------------------------------
-  // Fetch room details & participants (FIXED: no nested join)
-  // ---------------------------------------------------------------------------
   const fetchData = useCallback(async () => {
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -71,75 +70,97 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
       setError(null);
       setLoading(true);
 
-      // 1. Room details
       const { data: roomData, error: roomError } = await supabase
         .from('chat_rooms')
-        .select('*, product:product_id(name)', { signal })
+        .select('id, name, is_group, product_id, created_at, created_by', { signal })
         .eq('id', roomId)
         .single();
+
       if (roomError) throw roomError;
       setRoom(roomData);
+      setIsAdmin(roomData?.created_by === currentUserId);
 
-      // 2. Fetch participants (only user_id and role) – NO NESTED JOIN
+      if (roomData?.product_id) {
+        try {
+          const { data: productData, error: productError } = await supabase
+            .from('products')
+            .select('id, name', { signal })
+            .eq('id', roomData.product_id)
+            .single();
+
+          if (!productError && productData) {
+            setProduct(productData);
+          } else {
+            setProduct(null);
+          }
+        } catch (prodErr) {
+          console.warn('Failed to fetch product:', prodErr);
+          setProduct(null);
+        }
+      } else {
+        setProduct(null);
+      }
+
       const { data: participantsData, error: partsError } = await supabase
         .from('chat_participants')
-        .select('user_id, role', { signal })
+        .select('user_id', { signal })
         .eq('room_id', roomId);
+
       if (partsError) throw partsError;
 
       if (!participantsData || !Array.isArray(participantsData)) {
-        console.error('Participants invalid:', participantsData);
         throw new Error('Invalid participants data');
       }
 
-      // 3. Fetch user details from public.users view (created via SQL)
-      const userIds = participantsData.map(p => p.user_id).filter(Boolean);
-      let userMap = new Map();
+      const userIds = participantsData.map((p) => p.user_id).filter(Boolean);
+      let profileMap = new Map();
+
       if (userIds.length > 0) {
-        const { data: usersData, error: usersError } = await supabase
-          .from('users')
-          .select('id, email, raw_user_meta_data', { signal })
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('id, full_name, avatar_url, username', { signal })
           .in('id', userIds);
-        if (usersError) {
-          console.warn('Failed to fetch users:', usersError);
-        } else {
-          usersData?.forEach(user => userMap.set(user.id, user));
+
+        if (profilesError) {
+          console.warn('Failed to fetch profiles:', profilesError);
+        } else if (profilesData) {
+          profilesData.forEach((profile) => profileMap.set(profile.id, profile));
         }
       }
 
-      // Enrich participants
-      const enriched = participantsData.map(p => {
-        const user = userMap.get(p.user_id);
-        const name = user?.raw_user_meta_data?.full_name
-                  || user?.email?.split('@')[0]
-                  || p.user_id?.slice(0, 8)
-                  || 'User';
+      const enriched = participantsData.map((p) => {
+        const profile = profileMap.get(p.user_id);
+        const name =
+          profile?.full_name ||
+          profile?.username ||
+          p.user_id?.slice(0, 8) ||
+          'User';
+
         return {
-          ...p,
-          user,
+          user_id: p.user_id,
+          profile,
           name,
         };
       });
 
       setParticipants(enriched);
-      const currentParticipant = enriched.find(p => p.user_id === currentUserId);
-      setIsAdmin(currentParticipant?.role === 'admin');
 
-      // 4. Invite
-      const { data: inviteData, error: inviteError } = await supabase
+      const { data: inviteData, error: inviteErr } = await supabase
         .from('group_invites')
         .select('invite_code, expires_at', { signal })
         .eq('room_id', roomId)
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
-      if (inviteError) throw inviteError;
+
+      if (inviteErr) throw inviteErr;
+
       if (inviteData) {
         setInviteCode(inviteData.invite_code);
         setInviteExpiry(inviteData.expires_at);
       }
     } catch (err) {
-      if (err.name === 'AbortError') return;
+      if (err?.name === 'AbortError') return;
       console.error('REAL ERROR:', err);
       console.error('Stringified error:', JSON.stringify(err, null, 2));
       setError(err.message || 'Failed to load room info');
@@ -148,24 +169,32 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
     }
   }, [roomId, currentUserId]);
 
-  // ---------------------------------------------------------------------------
-  // Realtime (unchanged)
-  // ---------------------------------------------------------------------------
   useEffect(() => {
     fetchData();
 
     const channel = supabase
       .channel(`room-${roomId}-participants`)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_participants', filter: `room_id=eq.${roomId}` }, (payload) => {
-        if (debounceRef.current) clearTimeout(debounceRef.current);
-        debounceRef.current = setTimeout(() => {
-          if (payload.eventType === 'DELETE') {
-            setParticipants(prev => prev.filter(p => p.user_id !== payload.old.user_id));
-          } else {
-            fetchData();
-          }
-        }, 200);
-      })
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'chat_participants',
+          filter: `room_id=eq.${roomId}`,
+        },
+        (payload) => {
+          if (debounceRef.current) clearTimeout(debounceRef.current);
+          debounceRef.current = setTimeout(() => {
+            if (payload.eventType === 'DELETE') {
+              setParticipants((prev) =>
+                prev.filter((p) => p.user_id !== payload.old.user_id)
+              );
+            } else {
+              fetchData();
+            }
+          }, 200);
+        }
+      )
       .subscribe();
 
     return () => {
@@ -175,19 +204,19 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
     };
   }, [roomId, fetchData]);
 
-  // ---------------------------------------------------------------------------
-  // Invite (unchanged)
-  // ---------------------------------------------------------------------------
   const generateInvite = async () => {
     if (!isAdmin) return;
     setGeneratingInvite(true);
     setInviteError(null);
+
     try {
       const { data: code, error } = await supabase.rpc('create_group_invite', {
         p_room_id: roomId,
         p_valid_for: '7 days',
       });
+
       if (error) throw error;
+
       setInviteCode(code);
       setInviteExpiry(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString());
     } catch (err) {
@@ -210,40 +239,12 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Admin actions (unchanged)
-  // ---------------------------------------------------------------------------
-  const updateRole = async (userId, newRole) => {
-    if (!isAdmin || userId === currentUserId) return;
-    setUpdatingRoleId(userId);
-    setActionError(null);
-
-    setParticipants(prev => prev.map(p => 
-      p.user_id === userId ? { ...p, role: newRole } : p
-    ));
-
-    try {
-      const { error } = await supabase
-        .from('chat_participants')
-        .update({ role: newRole })
-        .eq('room_id', roomId)
-        .eq('user_id', userId);
-      if (error) throw error;
-    } catch (err) {
-      console.error('Role update error:', err);
-      setActionError(`Failed to update role: ${err.message}`);
-      fetchData();
-    } finally {
-      setUpdatingRoleId(null);
-    }
-  };
-
   const removeParticipant = async (userId) => {
     if (!isAdmin || userId === currentUserId) return;
     setRemovingId(userId);
     setActionError(null);
 
-    setParticipants(prev => prev.filter(p => p.user_id !== userId));
+    setParticipants((prev) => prev.filter((p) => p.user_id !== userId));
 
     try {
       const { error } = await supabase
@@ -251,6 +252,7 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
         .delete()
         .eq('room_id', roomId)
         .eq('user_id', userId);
+
       if (error) throw error;
     } catch (err) {
       console.error('Remove error:', err);
@@ -262,9 +264,6 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Leave / Delete (unchanged)
-  // ---------------------------------------------------------------------------
   const leaveGroup = async () => {
     setLeaving(true);
     setActionError(null);
@@ -274,8 +273,9 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
         .delete()
         .eq('room_id', roomId)
         .eq('user_id', currentUserId);
+
       if (error) throw error;
-      
+
       onRoomRemoved?.();
       onClose?.();
       router.push('/chat');
@@ -297,8 +297,9 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
         .from('chat_rooms')
         .delete()
         .eq('id', roomId);
+
       if (error) throw error;
-      
+
       onRoomRemoved?.();
       onClose?.();
       router.push('/chat');
@@ -317,14 +318,12 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
     setReporting(true);
 
     try {
-      const { error } = await supabase
-        .from('chat_reports')
-        .insert({
-          reporter_id: currentUserId,
-          room_id: reportModal.targetUserId ? null : roomId,
-          reported_user_id: reportModal.targetUserId || null,
-          reason: reportReason,
-        });
+      const { error } = await supabase.from('chat_reports').insert({
+        reporter_id: currentUserId,
+        room_id: reportModal.targetUserId ? null : roomId,
+        reported_user_id: reportModal.targetUserId || null,
+        reason: reportReason,
+      });
 
       if (error) throw error;
 
@@ -332,7 +331,6 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
 
       setReportModal({ open: false, targetUserId: null, targetName: null });
       setReportReason('');
-
     } catch (err) {
       console.error('Report error:', err);
       alert('Failed to submit report. Please try again.');
@@ -341,9 +339,6 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
     }
   };
 
-  // ---------------------------------------------------------------------------
-  // Confirmation modal (unchanged)
-  // ---------------------------------------------------------------------------
   const renderConfirm = () => {
     if (!confirmAction) return null;
 
@@ -393,9 +388,6 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
     );
   };
 
-  // ---------------------------------------------------------------------------
-  // Render (unchanged)
-  // ---------------------------------------------------------------------------
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full p-8">
@@ -474,7 +466,6 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
         transition={{ type: 'spring', stiffness: 260, damping: 25 }}
         className="flex flex-col h-full bg-bg-base border-l border-white/10"
       >
-        {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10">
           <h2 className="text-h3 font-semibold text-text-primary">Room Info</h2>
           <Button variant="ghost" size="sm" onClick={onClose} aria-label="Close panel">
@@ -493,23 +484,18 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
             </div>
           )}
 
-          {/* Room details */}
           <div>
             <h3 className="text-sm font-medium text-text-tertiary uppercase tracking-wider mb-2">
               {room?.is_group ? 'Group details' : 'Conversation'}
             </h3>
             <p className="text-text-primary font-medium">
-              {room?.name || (room?.product?.name ?? 'Private Chat')}
+              {room?.name || (product?.name ?? 'Private Chat')}
             </p>
-            {room?.description && (
-              <p className="text-text-secondary text-sm mt-1">{room.description}</p>
-            )}
             <p className="text-text-tertiary text-xs mt-2">
               Created {new Date(room?.created_at).toLocaleDateString()}
             </p>
           </div>
 
-          {/* Participants */}
           <div>
             <div className="flex justify-between items-center mb-2">
               <h3 className="text-sm font-medium text-text-tertiary uppercase tracking-wider">
@@ -527,63 +513,42 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
                 </Button>
               )}
             </div>
+
             <div className="space-y-2">
-              {participants.map((part) => (
-                <div key={part.user_id} className="flex items-center justify-between gap-2">
-                  <div className="flex items-center gap-2 min-w-0">
-                    <Avatar name={part.name} size={32} />
-                    <div className="truncate">
-                      <p className="text-text-primary text-sm font-medium truncate">{part.name}</p>
-                      <p className="text-text-tertiary text-xs">
-                        {part.role === 'admin' ? 'Admin' : 'Member'}
-                      </p>
-                    </div>
-                  </div>
-                  {isAdmin && part.user_id !== currentUserId && (
-                    <div className="flex gap-1">
-                      {part.role === 'admin' ? (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => updateRole(part.user_id, 'member')}
-                          disabled={updatingRoleId === part.user_id}
-                          title="Demote to member"
-                        >
-                          {updatingRoleId === part.user_id ? (
-                            <Spinner className="w-4 h-4" />
-                          ) : (
-                            <UserIcon className="w-4 h-4" />
-                          )}
-                        </Button>
-                      ) : (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => updateRole(part.user_id, 'admin')}
-                          disabled={updatingRoleId === part.user_id}
-                          title="Promote to admin"
-                        >
-                          {updatingRoleId === part.user_id ? (
-                            <Spinner className="w-4 h-4" />
-                          ) : (
-                            <ShieldCheckIcon className="w-4 h-4" />
-                          )}
-                        </Button>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setConfirmAction({ type: 'remove', userId: part.user_id })}
-                        disabled={removingId === part.user_id}
-                        title="Remove from group"
-                      >
-                        {removingId === part.user_id ? (
-                          <Spinner className="w-4 h-4" />
-                        ) : (
-                          <UserMinusIcon className="w-4 h-4" />
+              {participants.map((part) => {
+                const isCreator = part.user_id === room?.created_by;
+
+                return (
+                  <div key={part.user_id} className="flex items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Avatar name={part.name} src={part.profile?.avatar_url} size={32} />
+                      <div className="truncate">
+                        <p className="text-text-primary text-sm font-medium truncate">{part.name}</p>
+                        {isCreator && (
+                          <p className="text-text-tertiary text-xs">Admin</p>
                         )}
-                      </Button>
-                      {part.user_id !== currentUserId && (
+                      </div>
+                    </div>
+
+                    {isCreator && part.user_id === currentUserId && (
+                      <ShieldCheckIcon className="w-4 h-4 text-accent-primary" title="You are admin" />
+                    )}
+
+                    {isAdmin && part.user_id !== currentUserId && (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setConfirmAction({ type: 'remove', userId: part.user_id })}
+                          disabled={removingId === part.user_id}
+                          title="Remove from group"
+                        >
+                          {removingId === part.user_id ? (
+                            <Spinner className="w-4 h-4" />
+                          ) : (
+                            <UserMinusIcon className="w-4 h-4" />
+                          )}
+                        </Button>
                         <Button
                           variant="ghost"
                           size="sm"
@@ -598,18 +563,14 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
                         >
                           <FlagIcon className="w-4 h-4 text-status-error" />
                         </Button>
-                      )}
-                    </div>
-                  )}
-                  {part.user_id === currentUserId && part.role === 'admin' && (
-                    <ShieldCheckIcon className="w-4 h-4 text-accent-primary" title="You are admin" />
-                  )}
-                </div>
-              ))}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
 
-          {/* Invite */}
           {room?.is_group && isAdmin && (
             <div>
               <h3 className="text-sm font-medium text-text-tertiary uppercase tracking-wider mb-2">
@@ -650,7 +611,11 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
                     onClick={copyInviteLink}
                     className="flex-shrink-0"
                   >
-                    {copied ? <CheckIcon className="w-4 h-4" /> : <ClipboardDocumentIcon className="w-4 h-4" />}
+                    {copied ? (
+                      <CheckIcon className="w-4 h-4" />
+                    ) : (
+                      <ClipboardDocumentIcon className="w-4 h-4" />
+                    )}
                   </Button>
                 </div>
               )}
@@ -662,7 +627,6 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
             </div>
           )}
 
-          {/* Danger zone */}
           <div className="pt-4 border-t border-white/10">
             <h3 className="text-sm font-medium text-status-error uppercase tracking-wider mb-2">
               Danger zone
@@ -704,6 +668,7 @@ export function GroupInfoPanel({ roomId, onClose, onRoomRemoved, currentUserId }
                 Leave conversation
               </Button>
             )}
+
             <Button
               variant="secondary"
               size="sm"

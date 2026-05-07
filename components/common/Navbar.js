@@ -35,6 +35,13 @@ import {
   ArrowPathIcon,
   ChatBubbleLeftRightIcon,
   LightBulbIcon,
+  BuildingOffice2Icon,
+  TicketIcon,
+  UserGroupIcon,
+  ShieldCheckIcon,
+  GlobeAltIcon,
+  RectangleStackIcon,
+  PlusIcon,
 } from '@heroicons/react/24/outline';
 import { cn } from '@/lib/utils';
 
@@ -43,6 +50,18 @@ import { cn } from '@/lib/utils';
 // -----------------------------------------------------------------------------
 const NAV_ITEMS = [
   { href: '/', label: 'Home', icon: HomeIcon },
+  {
+    href: '/organizations',
+    label: 'Organizations',
+    icon: BuildingOffice2Icon,
+    highlight: true,
+    children: [
+      { href: '/organizations', label: 'Explore Organizations', icon: GlobeAltIcon },
+      { href: '/organizations/verified', label: 'Verified Firms', icon: ShieldCheckIcon },
+      { href: '/organizations/industries', label: 'Industries', icon: RectangleStackIcon },
+      { href: '/organizations/create', label: 'Create Organization', icon: PlusIcon },
+    ],
+  },
   {
     href: '/marketplace',
     label: 'Marketplace',
@@ -54,32 +73,38 @@ const NAV_ITEMS = [
       { href: '/marketplace/saved', label: 'Saved', icon: BookmarkIcon },
     ],
   },
-  {
-    href: '/ideas',
-    label: 'Ideas',
-    icon: LightBulbIcon,
-    children: [
-      { href: '/ideas', label: 'Explore Ideas', icon: LightBulbIcon },
-      { href: '/ideas/new', label: 'Share Idea', icon: SparklesIcon },
-    ],
-  },
+  { href: '/exhibitions', label: 'Exhibitions', icon: TicketIcon },
+  { href: '/network', label: 'Network', icon: UserGroupIcon },
+  { href: '/chat', label: 'Chat', icon: ChatBubbleLeftRightIcon },   // ✅ ADDED CHAT BUTTON
+  { href: '/insights', label: 'Insights', icon: ChartBarIcon },
+];
+
+// Secondary items moved out of primary nav
+const SECONDARY_ITEMS = [
+  { href: '/ideas', label: 'Ideas', icon: LightBulbIcon },
   { href: '/chat', label: 'Chat', icon: ChatBubbleLeftRightIcon },
   { href: '/blog', label: 'Blog', icon: DocumentTextIcon },
 ];
 
-// Realistic recent searches that persist in memory
 const RECENT_SEARCHES = [
-  { id: 'r1', query: 'wireless headphones under 2000', type: 'product', timestamp: Date.now() - 3600000 },
+  { id: 'r1', query: 'verified enterprise partners', type: 'org', timestamp: Date.now() - 3600000 },
   { id: 'r2', query: 'How to list a product', type: 'help', timestamp: Date.now() - 86400000 },
-  { id: 'r3', query: 'vintage cameras', type: 'product', timestamp: Date.now() - 172800000 },
+  { id: 'r3', query: 'quantum computing exhibitions', type: 'exhibition', timestamp: Date.now() - 172800000 },
 ];
 
 const QUICK_ACTIONS = [
-  { label: 'New Listing', icon: SparklesIcon, shortcut: '⌘N', href: '/marketplace/new', color: 'text-orange-500' },
-  { label: 'Share Idea', icon: LightBulbIcon, shortcut: '⌘I', href: '/ideas/new', color: 'text-purple-500' },
-  { label: 'My Profile', icon: UserIcon, shortcut: '⌘P', href: '/profile' },
+  { label: 'Create Organization', icon: BuildingOffice2Icon, shortcut: '⌘O', href: '/organizations/create', color: 'text-blue-500' },
+  { label: 'New Product', icon: ShoppingBagIcon, shortcut: '⌘N', href: '/marketplace/new', color: 'text-orange-500' },
+  { label: 'Create Exhibition', icon: TicketIcon, shortcut: '⌘E', href: '/exhibitions/new', color: 'text-purple-500' },
+  { label: 'Share Idea', icon: LightBulbIcon, shortcut: '⌘I', href: '/ideas/new', color: 'text-amber-500' },
   { label: 'Settings', icon: Cog6ToothIcon, shortcut: '⌘,', href: '/settings' },
-  { label: 'Help Center', icon: QuestionMarkCircleIcon, shortcut: '⌘H', href: '/help' },
+];
+
+const CREATE_OPTIONS = [
+  { label: 'Create Organization', icon: BuildingOffice2Icon, href: '/organizations/create', desc: 'Establish a new trust entity' },
+  { label: 'New Product', icon: ShoppingBagIcon, href: '/marketplace/new', desc: 'List a product or service' },
+  { label: 'Create Exhibition', icon: TicketIcon, href: '/exhibitions/new', desc: 'Host a showcase or space' },
+  { label: 'Share Idea', icon: LightBulbIcon, href: '/ideas/new', desc: 'Publish to the network' },
 ];
 
 // -----------------------------------------------------------------------------
@@ -108,10 +133,10 @@ const getRelativeTime = (timestamp) => {
 function Avatar({ name, src, size = 32, className }) {
   const initials = name?.split(' ').map((n) => n[0]).join('').slice(0, 2).toUpperCase() || 'U';
   const colors = [
-    'bg-orange-100 text-orange-700',
+    'bg-slate-100 text-slate-700',
     'bg-blue-100 text-blue-700',
     'bg-emerald-100 text-emerald-700',
-    'bg-purple-100 text-purple-700',
+    'bg-indigo-100 text-indigo-700',
   ];
   const colorIndex = name?.length % colors.length || 0;
 
@@ -144,16 +169,18 @@ function CommandPalette({ isOpen, onClose, onNavigate }) {
     if (!query.trim()) return [];
     const q = query.toLowerCase();
     const allPages = [
-      { id: '1', title: 'Home', href: '/', icon: HomeIcon, section: 'Pages' },
-      { id: '2', title: 'Marketplace', href: '/marketplace', icon: ShoppingBagIcon, section: 'Pages' },
-      { id: '3', title: 'Ideas', href: '/ideas', icon: LightBulbIcon, section: 'Pages' },
-      { id: '4', title: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon, section: 'Pages' },
-      { id: '5', title: 'Blog', href: '/blog', icon: DocumentTextIcon, section: 'Pages' },
-      { id: '6', title: 'Profile', href: '/profile', icon: UserIcon, section: 'Pages' },
-      { id: '7', title: 'Settings', href: '/settings', icon: Cog6ToothIcon, section: 'Pages' },
-      { id: '8', title: 'Trending Products', href: '/marketplace/trending', icon: FireIcon, section: 'Marketplace' },
-      { id: '9', title: 'Share Idea', href: '/ideas/new', icon: LightBulbIcon, section: 'Community' },
-      { id: '10', title: 'Saved Items', href: '/marketplace/saved', icon: BookmarkIcon, section: 'Marketplace' },
+      { id: '1', title: 'Home', href: '/', icon: HomeIcon, section: 'Platform' },
+      { id: '2', title: 'Organizations', href: '/organizations', icon: BuildingOffice2Icon, section: 'Platform' },
+      { id: '3', title: 'Verified Organizations', href: '/organizations/verified', icon: ShieldCheckIcon, section: 'Organizations' },
+      { id: '4', title: 'Industries', href: '/organizations/industries', icon: RectangleStackIcon, section: 'Organizations' },
+      { id: '5', title: 'Marketplace', href: '/marketplace', icon: ShoppingBagIcon, section: 'Platform' },
+      { id: '6', title: 'Exhibitions', href: '/exhibitions', icon: TicketIcon, section: 'Platform' },
+      { id: '7', title: 'Network', href: '/network', icon: UserGroupIcon, section: 'Platform' },
+      { id: '8', title: 'Insights', href: '/insights', icon: ChartBarIcon, section: 'Platform' },
+      { id: '9', title: 'Create Organization', href: '/organizations/create', icon: PlusIcon, section: 'Actions' },
+      { id: '10', title: 'Trending Products', href: '/marketplace/trending', icon: FireIcon, section: 'Marketplace' },
+      { id: '11', title: 'Share Idea', href: '/ideas/new', icon: LightBulbIcon, section: 'Community' },
+      { id: '12', title: 'Chat', href: '/chat', icon: ChatBubbleLeftRightIcon, section: 'Community' },
     ];
     return allPages.filter((p) => p.title.toLowerCase().includes(q));
   }, [query]);
@@ -232,7 +259,7 @@ function CommandPalette({ isOpen, onClose, onNavigate }) {
                 setQuery(e.target.value);
                 setSelectedIndex(0);
               }}
-              placeholder="Search products, posts, or jump to..."
+              placeholder="Search organizations, products, exhibitions..."
               className="flex-1 bg-transparent text-[15px] text-gray-900 dark:text-gray-100 placeholder:text-gray-400 dark:placeholder:text-gray-600 outline-none"
             />
             {query && (
@@ -389,33 +416,22 @@ function NotificationPanel({ isOpen, onClose, notifications, onMarkRead, onMarkA
 
   const getIcon = (type) => {
     switch (type) {
-      case 'message':
-        return ChatBubbleLeftRightIcon;
-      case 'offer':
-        return TagIcon;
-      case 'success':
-        return CheckCircleIcon;
-      case 'alert':
-        return ExclamationTriangleIcon;
-      case 'system':
-        return ArrowPathIcon;
-      default:
-        return InformationCircleIcon;
+      case 'message': return ChatBubbleLeftRightIcon;
+      case 'offer': return TagIcon;
+      case 'success': return CheckCircleIcon;
+      case 'alert': return ExclamationTriangleIcon;
+      case 'system': return ArrowPathIcon;
+      default: return InformationCircleIcon;
     }
   };
 
   const getColor = (type) => {
     switch (type) {
-      case 'message':
-        return 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400';
-      case 'offer':
-        return 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400';
-      case 'success':
-        return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400';
-      case 'alert':
-        return 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400';
-      default:
-        return 'bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-400';
+      case 'message': return 'bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400';
+      case 'offer': return 'bg-amber-50 text-amber-600 dark:bg-amber-500/10 dark:text-amber-400';
+      case 'success': return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400';
+      case 'alert': return 'bg-red-50 text-red-600 dark:bg-red-500/10 dark:text-red-400';
+      default: return 'bg-gray-100 text-gray-600 dark:bg-white/5 dark:text-gray-400';
     }
   };
 
@@ -507,6 +523,58 @@ function NotificationPanel({ isOpen, onClose, notifications, onMarkRead, onMarkA
 }
 
 // -----------------------------------------------------------------------------
+// COMPONENT: Create Dropdown
+// -----------------------------------------------------------------------------
+function CreateDropdown({ isOpen, onClose, onNavigate }) {
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (panelRef.current && !panelRef.current.contains(e.target)) onClose();
+    };
+    if (isOpen) document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      ref={panelRef}
+      initial={{ opacity: 0, y: 6, scale: 0.96 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: 6, scale: 0.96 }}
+      transition={{ type: 'spring', damping: 26, stiffness: 320 }}
+      className="absolute right-0 top-full mt-2.5 w-72 bg-white dark:bg-[#0f0f10] rounded-2xl border border-black/5 dark:border-white/[0.06] shadow-2xl overflow-hidden z-50 ring-1 ring-black/5"
+    >
+      <div className="px-4 py-3 border-b border-black/5 dark:border-white/[0.06]">
+        <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Create New</p>
+      </div>
+      <div className="p-1.5">
+        {CREATE_OPTIONS.map((option) => (
+          <button
+            key={option.label}
+            onClick={() => {
+              onNavigate(option.href);
+              onClose();
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-left transition-colors hover:bg-gray-50 dark:hover:bg-white/[0.04] group"
+          >
+            <div className="p-1.5 rounded-md bg-gray-100 dark:bg-white/5 text-gray-600 dark:text-gray-400 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-500/10 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+              <option.icon className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-800 dark:text-gray-200">{option.label}</p>
+              <p className="text-[11px] text-gray-500 dark:text-gray-500 leading-tight">{option.desc}</p>
+            </div>
+          </button>
+        ))}
+      </div>
+    </motion.div>
+  );
+}
+
+// -----------------------------------------------------------------------------
 // COMPONENT: User Dropdown
 // -----------------------------------------------------------------------------
 function UserDropdown({ isOpen, onClose, user, onLogout, onNavigate }) {
@@ -541,10 +609,7 @@ function UserDropdown({ isOpen, onClose, user, onLogout, onNavigate }) {
 
       <div className="p-1.5">
         <button
-          onClick={() => {
-            onNavigate('/profile');
-            onClose();
-          }}
+          onClick={() => { onNavigate('/profile'); onClose(); }}
           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
         >
           <UserIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -552,30 +617,21 @@ function UserDropdown({ isOpen, onClose, user, onLogout, onNavigate }) {
           <kbd className="text-[10px] text-gray-400 dark:text-gray-600 font-mono">⌘P</kbd>
         </button>
         <button
-          onClick={() => {
-            onNavigate('/my-listings');
-            onClose();
-          }}
+          onClick={() => { onNavigate('/my-listings'); onClose(); }}
           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
         >
           <ShoppingBagIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
           <span className="flex-1 text-left">My Listings</span>
         </button>
         <button
-          onClick={() => {
-            onNavigate('/saved');
-            onClose();
-          }}
+          onClick={() => { onNavigate('/saved'); onClose(); }}
           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
         >
           <HeartIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
           <span className="flex-1 text-left">Saved Items</span>
         </button>
         <button
-          onClick={() => {
-            onNavigate('/analytics');
-            onClose();
-          }}
+          onClick={() => { onNavigate('/analytics'); onClose(); }}
           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
         >
           <ChartBarIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -585,10 +641,7 @@ function UserDropdown({ isOpen, onClose, user, onLogout, onNavigate }) {
 
       <div className="border-t border-black/5 dark:border-white/[0.06] p-1.5">
         <button
-          onClick={() => {
-            onNavigate('/settings');
-            onClose();
-          }}
+          onClick={() => { onNavigate('/settings'); onClose(); }}
           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
         >
           <Cog6ToothIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -596,10 +649,7 @@ function UserDropdown({ isOpen, onClose, user, onLogout, onNavigate }) {
           <kbd className="text-[10px] text-gray-400 dark:text-gray-600 font-mono">⌘,</kbd>
         </button>
         <button
-          onClick={() => {
-            onNavigate('/help');
-            onClose();
-          }}
+          onClick={() => { onNavigate('/help'); onClose(); }}
           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors"
         >
           <QuestionMarkCircleIcon className="w-4 h-4 text-gray-400 dark:text-gray-500" />
@@ -609,10 +659,7 @@ function UserDropdown({ isOpen, onClose, user, onLogout, onNavigate }) {
 
       <div className="border-t border-black/5 dark:border-white/[0.06] p-1.5">
         <button
-          onClick={() => {
-            onLogout();
-            onClose();
-          }}
+          onClick={() => { onLogout(); onClose(); }}
           className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-[13px] text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors"
         >
           <ArrowRightOnRectangleIcon className="w-4 h-4" />
@@ -627,6 +674,12 @@ function UserDropdown({ isOpen, onClose, user, onLogout, onNavigate }) {
 // COMPONENT: Mobile Menu
 // -----------------------------------------------------------------------------
 function MobileMenu({ isOpen, onClose, user, onLogout, onNavigate }) {
+  const [expandedItem, setExpandedItem] = useState(null);
+
+  const toggleExpand = (href) => {
+    setExpandedItem(expandedItem === href ? null : href);
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -644,11 +697,16 @@ function MobileMenu({ isOpen, onClose, user, onLogout, onNavigate }) {
           animate={{ x: 0 }}
           exit={{ x: '-100%' }}
           transition={{ type: 'spring', damping: 28, stiffness: 300 }}
-          className="absolute left-0 top-0 bottom-0 w-[280px] bg-white dark:bg-[#0a0a0a] border-r border-black/5 dark:border-white/[0.06] overflow-y-auto"
+          className="absolute left-0 top-0 bottom-0 w-[300px] bg-white dark:bg-[#0a0a0a] border-r border-black/5 dark:border-white/[0.06] overflow-y-auto"
           onClick={(e) => e.stopPropagation()}
         >
           <div className="flex items-center justify-between px-4 py-3.5 border-b border-black/5 dark:border-white/[0.06]">
-            <span className="text-lg font-bold tracking-tight text-gray-900 dark:text-white">Bharat Startup</span>
+            <div className="flex items-center gap-2">
+              <div className="w-7 h-7 rounded-lg bg-gray-900 dark:bg-white flex items-center justify-center">
+                <SparklesIcon className="w-4 h-4 text-white dark:text-black" />
+              </div>
+              <span className="text-base font-bold tracking-tight text-gray-900 dark:text-white">Bharat Startup</span>
+            </div>
             <button
               onClick={onClose}
               className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
@@ -676,42 +734,75 @@ function MobileMenu({ isOpen, onClose, user, onLogout, onNavigate }) {
               <div key={item.href}>
                 <button
                   onClick={() => {
-                    onNavigate(item.href);
-                    onClose();
+                    if (item.children) {
+                      toggleExpand(item.href);
+                    } else {
+                      onNavigate(item.href);
+                      onClose();
+                    }
                   }}
                   className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-white/[0.06] transition-colors font-medium"
                 >
-                  <item.icon className="w-5 h-5 text-gray-500 dark:text-gray-500" />
+                  <item.icon className={cn('w-5 h-5', item.highlight ? 'text-indigo-500' : 'text-gray-500 dark:text-gray-500')} />
                   <span className="flex-1 text-left">{item.label}</span>
+                  {item.children && (
+                    <ChevronDownIcon className={cn('w-4 h-4 text-gray-400 transition-transform duration-200', expandedItem === item.href && 'rotate-180')} />
+                  )}
                 </button>
                 {item.children && (
-                  <div className="ml-4 pl-4 border-l border-gray-200 dark:border-white/10 space-y-0.5 mt-0.5">
-                    {item.children.map((child) => (
-                      <button
-                        key={child.href}
-                        onClick={() => {
-                          onNavigate(child.href);
-                          onClose();
-                        }}
-                        className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+                  <AnimatePresence>
+                    {expandedItem === item.href && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: 'auto', opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2, ease: 'easeInOut' }}
+                        className="overflow-hidden"
                       >
-                        <child.icon className="w-4 h-4" />
-                        <span className="flex-1 text-left">{child.label}</span>
-                      </button>
-                    ))}
-                  </div>
+                        <div className="ml-4 pl-4 border-l border-gray-200 dark:border-white/10 space-y-0.5 mt-0.5 mb-1">
+                          {item.children.map((child) => (
+                            <button
+                              key={child.href}
+                              onClick={() => {
+                                onNavigate(child.href);
+                                onClose();
+                              }}
+                              className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+                            >
+                              <child.icon className="w-4 h-4" />
+                              <span className="flex-1 text-left">{child.label}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 )}
               </div>
             ))}
           </div>
 
           <div className="p-2 border-t border-black/5 dark:border-white/[0.06]">
-            {user ? (
+            <p className="px-3 py-1.5 text-[10px] font-semibold text-gray-400 dark:text-gray-600 uppercase tracking-widest">Community</p>
+            {SECONDARY_ITEMS.map((item) => (
               <button
+                key={item.href}
                 onClick={() => {
-                  onLogout();
+                  onNavigate(item.href);
                   onClose();
                 }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-gray-500 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-white/[0.06] hover:text-gray-900 dark:hover:text-gray-200 transition-colors"
+              >
+                <item.icon className="w-5 h-5" />
+                <span className="flex-1 text-left font-medium">{item.label}</span>
+              </button>
+            ))}
+          </div>
+
+          <div className="p-2 border-t border-black/5 dark:border-white/[0.06]">
+            {user ? (
+              <button
+                onClick={() => { onLogout(); onClose(); }}
                 className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors font-medium"
               >
                 <ArrowRightOnRectangleIcon className="w-5 h-5" />
@@ -719,10 +810,7 @@ function MobileMenu({ isOpen, onClose, user, onLogout, onNavigate }) {
               </button>
             ) : (
               <button
-                onClick={() => {
-                  onNavigate('/login');
-                  onClose();
-                }}
+                onClick={() => { onNavigate('/login'); onClose(); }}
                 className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg text-sm bg-gray-900 dark:bg-white text-white dark:text-black font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
               >
                 <UserIcon className="w-4 h-4" />
@@ -747,6 +835,7 @@ export function Navbar() {
   const [commandOpen, setCommandOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [createMenuOpen, setCreateMenuOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
   const [notifications, setNotifications] = useState([]);
@@ -815,6 +904,7 @@ export function Navbar() {
         setCommandOpen(false);
         setNotifOpen(false);
         setUserMenuOpen(false);
+        setCreateMenuOpen(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -826,33 +916,33 @@ export function Navbar() {
     setNotifications([
       {
         id: '1',
-        type: 'message',
-        title: 'New offer on your listing',
-        body: 'Someone offered ₹1,200 for your Vintage Camera. Tap to view.',
+        type: 'success',
+        title: 'Organization Verified',
+        body: 'Your organization "Quantum Dynamics" has been granted Enterprise Verification.',
         read: false,
         created_at: new Date(Date.now() - 5 * 60000).toISOString(),
       },
       {
         id: '2',
         type: 'offer',
-        title: 'Price drop alert',
-        body: 'MacBook Pro 2023 dropped by ₹8,000. Now ₹42,999.',
+        title: 'New Partnership Request',
+        body: 'Stark Industries wants to establish a verified connection with your firm.',
         read: false,
         created_at: new Date(Date.now() - 45 * 60000).toISOString(),
       },
       {
         id: '3',
         type: 'system',
-        title: 'Weekly summary ready',
-        body: 'Your shop got 234 views this week. 12% increase from last week.',
+        title: 'Trust Score Updated',
+        body: 'Your organization trust score increased to 98/100. View the breakdown.',
         read: true,
         created_at: new Date(Date.now() - 26 * 3600000).toISOString(),
       },
       {
         id: '4',
-        type: 'success',
-        title: 'Listing published',
-        body: 'Your "Wireless Headphones" is now live on the marketplace.',
+        type: 'message',
+        title: 'Exhibition Booking Confirmed',
+        body: 'Your space "Premium Showcase A" has been booked for the upcoming event.',
         read: true,
         created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
       },
@@ -889,6 +979,12 @@ export function Navbar() {
     [pathname]
   );
 
+  const closeAllMenus = () => {
+    setNotifOpen(false);
+    setUserMenuOpen(false);
+    setCreateMenuOpen(false);
+  };
+
   if (loading) {
     return (
       <div className="sticky top-0 z-50 w-full h-14 bg-white/80 dark:bg-[#0a0a0a]/80 backdrop-blur-xl border-b border-black/5 dark:border-white/[0.06]" />
@@ -910,7 +1006,7 @@ export function Navbar() {
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="flex justify-between items-center h-14">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setMobileMenuOpen(true)}
                 className="md:hidden p-1.5 -ml-1.5 text-gray-500 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-white/5 transition-colors"
@@ -927,6 +1023,14 @@ export function Navbar() {
                 </span>
               </Link>
 
+              {/* Future Organization Switcher Preparation Space */}
+              <div className="hidden md:flex items-center gap-2 ml-2 pl-4 border-l border-gray-200/80 dark:border-white/10">
+                {/* 
+                  [Org Avatar] [Current Org Name ▼] 
+                  Will be implemented here.
+                */}
+              </div>
+
               <div className="hidden md:flex items-center gap-0.5">
                 {NAV_ITEMS.map((item) => {
                   const active = isActive(item.href);
@@ -937,8 +1041,9 @@ export function Navbar() {
                         className={cn(
                           'relative px-3 py-1.5 rounded-lg text-[13px] font-medium transition-all duration-150 flex items-center gap-1.5',
                           active
-                            ? 'text-gray-900 dark:text-white'
-                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/[0.05]'
+                            ? item.highlight ? 'text-indigo-700 dark:text-indigo-400' : 'text-gray-900 dark:text-white'
+                            : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 hover:bg-gray-100/80 dark:hover:bg-white/[0.05]',
+                          item.highlight && 'font-semibold'
                         )}
                       >
                         <item.icon className="w-3.5 h-3.5" />
@@ -946,15 +1051,18 @@ export function Navbar() {
                         {active && (
                           <motion.div
                             layoutId="nav-pill"
-                            className="absolute inset-0 bg-gray-100 dark:bg-white/[0.06] rounded-lg -z-10"
+                            className={cn(
+                              "absolute inset-0 rounded-lg -z-10",
+                              item.highlight ? 'bg-indigo-50 dark:bg-indigo-500/10' : 'bg-gray-100 dark:bg-white/[0.06]'
+                            )}
                             transition={{ type: 'spring', damping: 24, stiffness: 320 }}
                           />
                         )}
                       </Link>
 
                       {item.children && (
-                        <div className="absolute top-full left-0 pt-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150">
-                          <div className="bg-white dark:bg-[#0f0f10] rounded-xl border border-black/5 dark:border-white/[0.06] shadow-xl p-1.5 min-w-[200px] ring-1 ring-black/5">
+                        <div className="absolute top-full left-0 pt-1.5 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-150 z-40">
+                          <div className="bg-white dark:bg-[#0f0f10] rounded-xl border border-black/5 dark:border-white/[0.06] shadow-xl p-1.5 min-w-[220px] ring-1 ring-black/5">
                             {item.children.map((child) => (
                               <Link
                                 key={child.href}
@@ -974,7 +1082,7 @@ export function Navbar() {
               </div>
             </div>
 
-            <div className="hidden md:flex flex-1 max-w-md mx-6">
+            <div className="hidden md:flex flex-1 max-w-xs mx-4">
               <button
                 onClick={() => setCommandOpen(true)}
                 className={cn(
@@ -986,7 +1094,7 @@ export function Navbar() {
                 )}
               >
                 <MagnifyingGlassIcon className="w-3.5 h-3.5 text-gray-400 dark:text-gray-600" />
-                <span className="flex-1 text-left">Search...</span>
+                <span className="flex-1 text-left truncate">Search...</span>
                 <kbd className="hidden lg:inline-flex px-1.5 py-0.5 text-[10px] font-mono text-gray-400 dark:text-gray-600 bg-white dark:bg-white/5 rounded border border-gray-200 dark:border-white/10">
                   ⌘K
                 </kbd>
@@ -1014,7 +1122,8 @@ export function Navbar() {
                   <button
                     onClick={() => {
                       setNotifOpen(!notifOpen);
-                      setUserMenuOpen(false);
+                      closeAllMenus();
+                      setNotifOpen(!notifOpen);
                     }}
                     className={cn(
                       'relative p-2 rounded-lg transition-all duration-150 active:scale-[0.95]',
@@ -1042,12 +1151,40 @@ export function Navbar() {
                 </div>
               )}
 
+              {user && (
+                <div className="relative hidden md:block">
+                  <motion.button
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
+                    onClick={() => {
+                      setCreateMenuOpen(!createMenuOpen);
+                      closeAllMenus();
+                      setCreateMenuOpen(!createMenuOpen);
+                    }}
+                    className="ml-1 flex items-center gap-1.5 px-3 py-1.5 text-[13px] font-medium bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-lg shadow-sm hover:shadow-md transition-shadow"
+                  >
+                    <PlusIcon className="w-4 h-4" />
+                    <span>Create</span>
+                  </motion.button>
+                  <AnimatePresence>
+                    {createMenuOpen && (
+                      <CreateDropdown
+                        isOpen={createMenuOpen}
+                        onClose={() => setCreateMenuOpen(false)}
+                        onNavigate={handleNavigate}
+                      />
+                    )}
+                  </AnimatePresence>
+                </div>
+              )}
+
               {user ? (
                 <div className="relative ml-1">
                   <button
                     onClick={() => {
                       setUserMenuOpen(!userMenuOpen);
-                      setNotifOpen(false);
+                      closeAllMenus();
+                      setUserMenuOpen(!userMenuOpen);
                     }}
                     className={cn(
                       'flex items-center gap-2 pl-1 pr-1.5 py-1 rounded-lg transition-all duration-150 active:scale-[0.95]',
@@ -1094,7 +1231,7 @@ export function Navbar() {
       <MobileMenu isOpen={mobileMenuOpen} onClose={() => setMobileMenuOpen(false)} user={user} onLogout={handleLogout} onNavigate={handleNavigate} />
 
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-xl border-t border-black/5 dark:border-white/[0.06] py-1.5 px-2 flex justify-around z-40 pb-safe">
-        {NAV_ITEMS.map((item) => (
+        {NAV_ITEMS.slice(0, 5).map((item) => (
           <Link
             key={item.href}
             href={item.href}

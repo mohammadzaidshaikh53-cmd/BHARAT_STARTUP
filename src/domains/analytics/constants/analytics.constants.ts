@@ -1,0 +1,19 @@
+export const ANALYTICS_CONSTANTS = {
+  DEFAULT_RETENTION_DAYS: 365,
+  MAX_AGGREGATION_LIMIT: 1000,
+  BATCH_SIZE: 100,
+  FLUSH_INTERVAL_MS: 5000,
+};
+
+export const METRIC_NAMES = {
+  SYSTEM_CPU: 'sys.cpu',
+  SYSTEM_MEMORY: 'sys.mem',
+  API_LATENCY: 'api.latency',
+  DB_QUERY_TIME: 'db.query_time',
+};
+
+export const RETENTION_POLICIES = {
+  RAW_EVENTS: '30d',
+  HOURLY_AGGREGATES: '90d',
+  DAILY_AGGREGATES: '365d',
+};

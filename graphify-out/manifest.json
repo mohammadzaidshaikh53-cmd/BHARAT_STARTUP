@@ -1,0 +1,574 @@
+{
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\eslint.config.mjs": {
+    "mtime": 1777607422.8105395,
+    "hash": "dfa1f5f6a7037bf39dc510f30b180002"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\next-env.d.ts": {
+    "mtime": 1777609271.54179,
+    "hash": "d0f8375ae1199dc7acd3977fc33b78b8"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\next.config.js": {
+    "mtime": 1777736965.2566123,
+    "hash": "6250ac3f214385247c4953dd4acfd581"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\next.config.ts": {
+    "mtime": 1777607422.87564,
+    "hash": "9b77af189a21a7a64e4bd7a426f64176"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\postcss.config.mjs": {
+    "mtime": 1777607422.8255465,
+    "hash": "239f3ebf717465dc636818a1a619398d"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\layout.js": {
+    "mtime": 1778092571.9294503,
+    "hash": "010210d0bc254a918e3f7e03879e0f8a"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\page.js": {
+    "mtime": 1778137510.7876039,
+    "hash": "3c7a13b3a1c6c1e481eff67eb82c4dfc"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\add-product\\page.js": {
+    "mtime": 1777623177.9312866,
+    "hash": "b2f4910eff028c9c1727f2099eec903d"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\add-request\\page.js": {
+    "mtime": 1777646191.1003683,
+    "hash": "ae7f74903b47cffdab9aebb6dff63a99"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\admin\\verify\\page.js": {
+    "mtime": 1777655589.113905,
+    "hash": "557deecbfa0ca6c7d0679ff98004a2a6"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\auth\\callback\\route.js": {
+    "mtime": 1777870329.5897582,
+    "hash": "64ca85e083ea4219b8fac7adb8ef6e42"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\biographies\\new\\page.js": {
+    "mtime": 1777913007.8467505,
+    "hash": "d444ed404e476af12bcfb9b30ea421fc"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\blog\\page.js": {
+    "mtime": 1778137324.195367,
+    "hash": "2038423eef6aff169f9f0826f6a43dd3"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\blog\\new\\editor.js": {
+    "mtime": 1777875627.9800618,
+    "hash": "18e2bd293ea1b3050283efb44851cd29"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\blog\\new\\page.js": {
+    "mtime": 1777836127.163264,
+    "hash": "54a99e6d1a1b6c891deff83b0b305cd9"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\blog\\[slug]\\page.js": {
+    "mtime": 1777834342.5598803,
+    "hash": "cf08c46a38aa8092403657efcc1d78e1"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\blog\\[slug]\\components\\EngagementTracker.js": {
+    "mtime": 1777804129.069841,
+    "hash": "c3bbff176ab394d4fbca13072168554e"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\blog\\[slug]\\components\\PostSidebar.js": {
+    "mtime": 1777804154.8082097,
+    "hash": "a1513564397581f7e231fe5fa69fd4c5"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\chat\\layout.js": {
+    "mtime": 1777699299.5964878,
+    "hash": "e34030bf65dd64b9e4eaca815894cc02"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\chat\\page.js": {
+    "mtime": 1777719871.1392534,
+    "hash": "35657946df80285302adc718220a21cf"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\community\\page.js": {
+    "mtime": 1778137324.195367,
+    "hash": "21ba25f0260a5cb32bcd03e75f1a2d8f"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\community\\questions\\page.js": {
+    "mtime": 1777822201.6525295,
+    "hash": "69389d2abb3987bd8c5aaf99866a6598"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\community\\questions\\new\\page.js": {
+    "mtime": 1777822233.499994,
+    "hash": "81d1fc5d99148403f0096c9c6888fe8d"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\community\\questions\\[id]\\page.js": {
+    "mtime": 1777822264.0902045,
+    "hash": "a6baae73e142e6f0f43e7791a21bd550"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\dashboard\\page.js": {
+    "mtime": 1777656278.0008721,
+    "hash": "9e066614cae36323114c1dbc1591e55c"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\dashboard\\organization\\[id]\\page.js": {
+    "mtime": 1778066323.0940435,
+    "hash": "7602f3fc0fe24dac2014f042669c42fe"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\discussions\\new\\page.js": {
+    "mtime": 1777892015.6639082,
+    "hash": "91044e9c72769fea3bb074bcffae9a26"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\ideas\\new\\page.js": {
+    "mtime": 1777913398.2107377,
+    "hash": "2fec737a227eb983dbae884c7571d10d"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\login\\page.js": {
+    "mtime": 1777875085.0690413,
+    "hash": "4dde05953899082106fd759017b9204e"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\marketplace\\layout.js": {
+    "mtime": 1777742038.8132584,
+    "hash": "fe2601df2f3748d3ad96fe501698529f"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\marketplace\\page.js": {
+    "mtime": 1777742069.7228105,
+    "hash": "ff8d071ad2536b129e1888a78d76f9be"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\marketplace\\wrapper\\category\\[slug]\\page.js": {
+    "mtime": 1777744043.6726499,
+    "hash": "420b8b36bf7452f1e985435fcadc705a"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\marketplace\\wrapper\\product\\[id]\\page.js": {
+    "mtime": 1777741757.7859492,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\motivation\\new\\page.js": {
+    "mtime": 1777913022.7687516,
+    "hash": "bba62948466857a384bd25c54d083633"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\page.js": {
+    "mtime": 1778086036.7910945,
+    "hash": "acbc3336e6a498d346d25f724c606bc0"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\data.js": {
+    "mtime": 1778085635.2286284,
+    "hash": "151ce1d39c714edeae72ec61b6e704be"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\EcosystemPulse.js": {
+    "mtime": 1778072524.044408,
+    "hash": "e47d9b2c4b55585715d862586d400268"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\EmptyState.js": {
+    "mtime": 1778072395.1968334,
+    "hash": "7cd56a558347963d1086faa7c2ceb0cb"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\ErrorFallback.js": {
+    "mtime": 1778080111.8556256,
+    "hash": "704a80e763e58452df6bb9688e20054a"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\helpers.js": {
+    "mtime": 1778082306.8420799,
+    "hash": "77a50161c60238aa8cbf70410a2d4076"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\IndustryCard.js": {
+    "mtime": 1778072573.1544375,
+    "hash": "60529095fd02284012e1a5efa06a30a2"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\LoadingSkeleton.js": {
+    "mtime": 1778080180.2102945,
+    "hash": "214b71d44dca19b31a2f54391c172100"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\OrganizationCard.js": {
+    "mtime": 1778080937.871547,
+    "hash": "daeb0ec45aeea3da677289cc3640d213"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\PageBackground.js": {
+    "mtime": 1778072500.2241538,
+    "hash": "42fae8f66067cfbfb9f5c65feb4808b2"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\SearchInput.js": {
+    "mtime": 1778080226.8735752,
+    "hash": "36c370212752fe6c26177f863e12907a"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\styles.js": {
+    "mtime": 1778072329.0093122,
+    "hash": "41b7c7ec40d03fc73c0098838a60778f"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\hooks\\useDebounce.js": {
+    "mtime": 1778079962.67183,
+    "hash": "0f427c952d0f2030da0cbc6681f26feb"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\hooks\\useOrganizations.js": {
+    "mtime": 1778079421.075629,
+    "hash": "00de161adcc07df57e65d79fc1dd209a"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\hooks\\useOrganizationsInfinite.js": {
+    "mtime": 1778092629.4874094,
+    "hash": "e2bb1a322174839d9df037d9b2bb60e9"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\components\\hooks\\useTrustSparkline.js": {
+    "mtime": 1778079988.0945842,
+    "hash": "858a926ae3979538177d86ea6c7b2f14"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\create\\page.js": {
+    "mtime": 1778066228.845908,
+    "hash": "eddb6fc1d7432982c628503a8c77fb6f"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\industries\\page.js": {
+    "mtime": 1778086664.1920002,
+    "hash": "f055abcc4edd9571da68f5c4d0be86ab"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\industries\\[slug]\\page.js": {
+    "mtime": 1778085265.319607,
+    "hash": "645c45dbed7c700533939b9ade2450d3"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\verified\\page.js": {
+    "mtime": 1778086135.0252478,
+    "hash": "240a38737a9d64c1ce48e063fe581477"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\organizations\\[slug]\\page.js": {
+    "mtime": 1778085939.5292144,
+    "hash": "b9f311a3fdb7f5d66dbb65d958b8b875"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\products\\[id]\\page.js": {
+    "mtime": 1777810367.8604667,
+    "hash": "d41d8cd98f00b204e9800998ecf8427e"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\profile\\page.js": {
+    "mtime": 1777731344.561651,
+    "hash": "acd3b32ec60bf1560ef479afe308d049"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\qa\\new\\page.js": {
+    "mtime": 1777913029.0284867,
+    "hash": "0a00267f76996812e3165e6bd847fae2"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\reset-password\\page.js": {
+    "mtime": 1777719058.475449,
+    "hash": "42480b8437b9a6f89163de0a582e05d6"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\blog\\post-preview.js": {
+    "mtime": 1777830269.3820567,
+    "hash": "61f1596e3288c97ecc1c9e38b240b32a"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\blog\\tag-input.js": {
+    "mtime": 1777830241.7457395,
+    "hash": "a122677585c5beb954b53b23fa21887a"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\chat\\ChatLayout.js": {
+    "mtime": 1777700888.0747569,
+    "hash": "402d498397c7ff3b0ffe78aab38e595f"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\chat\\ChatList.js": {
+    "mtime": 1778097224.0803642,
+    "hash": "54d5f50373a8955690984a87ddf6257b"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\chat\\ChatRoom.js": {
+    "mtime": 1777827334.0173726,
+    "hash": "7fbadeceb644fa2ca0525df3fa447e64"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\chat\\Composer.js": {
+    "mtime": 1777747558.3111713,
+    "hash": "55a2fbe97eba476effc55c37127592be"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\chat\\MessageBubble.js": {
+    "mtime": 1777828742.7752466,
+    "hash": "73a9591d58ca1147a667e68622cfe9a3"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\chat\\NewChatModal.js": {
+    "mtime": 1778131001.211772,
+    "hash": "ec963315234443350c6c9d826502aeb2"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\chat\\TypingIndicator.js": {
+    "mtime": 1777724692.8768218,
+    "hash": "5f743ca517868e3c95445e22a8aab181"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\common\\Avatar.js": {
+    "mtime": 1777896132.0525155,
+    "hash": "0d9426fe7892ecd4a0b79fcd7715537a"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\common\\Button.js": {
+    "mtime": 1777703926.7661464,
+    "hash": "96dd450c7b3d7430c591cdc0d2a65862"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\common\\Navbar.js": {
+    "mtime": 1778094384.412801,
+    "hash": "96ceccfc98604f16882e8087250d7e90"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\common\\Spinner.js": {
+    "mtime": 1777716466.9279518,
+    "hash": "863b3560b19f67147d254176c0e0bff2"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\community\\DiscussionThread.js": {
+    "mtime": 1777822130.3252242,
+    "hash": "b69a34edb9d906608fc8a49c566fe18f"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\layout\\Footer.js": {
+    "mtime": 1777808287.3013809,
+    "hash": "9d0ef2e9f4b60cc7208d5a6b9749dc60"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\layout\\HomeLayout.js": {
+    "mtime": 1777813542.9387183,
+    "hash": "2363cc94487baab8d82f699afb0bff70"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\motion\\transitions.js": {
+    "mtime": 1777703510.901425,
+    "hash": "67393477c656983679a308aeb2ec06bf"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\motion\\variants.js": {
+    "mtime": 1777702991.2207158,
+    "hash": "9d5590a60a5966628613018c4987f28e"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\panels\\GroupInfoPanel.js": {
+    "mtime": 1778130867.9704306,
+    "hash": "557c28e8d3c21a08803ad1c866dedf53"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\panels\\InviteSection.js": {
+    "mtime": 1777744964.5609114,
+    "hash": "fd8bc3d7e106dcc300098d3a365054e8"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\panels\\ProfileCard.js": {
+    "mtime": 1777731005.1911037,
+    "hash": "053a5a0d3420d54611d7e8d24d1df09f"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\sections\\conversion\\FinalCTA.js": {
+    "mtime": 1777809195.264248,
+    "hash": "58612bd531dbc79a8920917c7218329f"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\sections\\conversion\\HowItWorks.js": {
+    "mtime": 1777809158.7642617,
+    "hash": "d473578af1072b9dbbbf721c37a0e9f5"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\sections\\hero\\HeroSection.js": {
+    "mtime": 1777808966.4043455,
+    "hash": "ca571414b520c7afa13154638e84fa0a"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\sections\\marketplace\\BentoStats.js": {
+    "mtime": 1777808998.749328,
+    "hash": "86acfc02499cd3391c1e0b93e8a09934"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\sections\\marketplace\\CategoryBento.js": {
+    "mtime": 1777809104.228026,
+    "hash": "afda3ff8d5ebaecd04dc936d24aea553"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\sections\\marketplace\\TrendingStrip.js": {
+    "mtime": 1777809019.9291055,
+    "hash": "a792fb929ddf8f057bd3e8576b21acbd"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\sections\\social\\CommunityPreview.js": {
+    "mtime": 1777814730.0181606,
+    "hash": "85e5961eb6f8fd27012d5641a1da1887"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\sections\\social\\RequestsTicker.js": {
+    "mtime": 1777809081.8587458,
+    "hash": "e7812aedf93fd85742e719c550ecb0c9"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\AnimatedBackground.js": {
+    "mtime": 1777808163.8650424,
+    "hash": "b8149def847abbe975364f7d2b1ca3d6"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\Avatar.js": {
+    "mtime": 1777810446.930159,
+    "hash": "c44efc6a1f93b3c93105609a6e2653b8"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\Button.js": {
+    "mtime": 1777810418.7557504,
+    "hash": "682c1c6b5c88234ba2a833a392681089"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\Container.js": {
+    "mtime": 1777810430.3938031,
+    "hash": "50913cf1639a261a07f64d1e67c3fc31"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\CustomCursor.js": {
+    "mtime": 1777808147.554423,
+    "hash": "12a359b5597f993ada78c12314aa25ed"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\ErrorBoundary.js": {
+    "mtime": 1777808102.0483725,
+    "hash": "5bf837a8cde177f4bf6ed69fc240033c"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\GlassCard.js": {
+    "mtime": 1777809289.8437352,
+    "hash": "24b55293dd14bef81d27424b7a27ece5"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\Input.js": {
+    "mtime": 1777829906.3018818,
+    "hash": "4e8b3de1df49e7881c026cfec24a0339"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\LoadingSpinner.js": {
+    "mtime": 1777808122.2790973,
+    "hash": "4de7a030988ef159feca388c936547fc"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\SectionHeader.js": {
+    "mtime": 1777809307.8386176,
+    "hash": "0426ed67f7f68fa1a2b5d85af2f92d1d"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\components\\ui\\Textarea.js": {
+    "mtime": 1777830988.159757,
+    "hash": "9eca82d18b38680993d90cd9cabfe031"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\hooks\\use-auto-save.js": {
+    "mtime": 1777831185.3935723,
+    "hash": "84fdba9cb73075c3bb43d27cc4c7a406"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\hooks\\use-debounce.js": {
+    "mtime": 1777831138.774139,
+    "hash": "c742d6f4afa3c45273b7be8e5740b0d4"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\hooks\\use-debounced-callback.js": {
+    "mtime": 1777830727.7148979,
+    "hash": "82fbc4cf4d344113326638f13a8fb6ab"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\hooks\\useChatSubscription.js": {
+    "mtime": 1777747010.2544675,
+    "hash": "91899527f3560aeb85a497e94c25926b"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\hooks\\useLiveQuery.js": {
+    "mtime": 1777830472.452161,
+    "hash": "36241d1eef5cdb7346212594b91cd7d1"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\hooks\\useTypingIndicator.js": {
+    "mtime": 1777747237.935758,
+    "hash": "8319f0995cc31153ef3be7b930397661"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\hooks\\useUnreadCounts.js": {
+    "mtime": 1777781576.729499,
+    "hash": "9008fe88181effd00848b1d426a2f912"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\contentService.js": {
+    "mtime": 1777913033.1209671,
+    "hash": "f7bf9d5bd2c244d48507517eb297d911"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\supabase-server.js": {
+    "mtime": 1777834400.3445303,
+    "hash": "6dde5758eff31cc93f66782d76675958"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\supabase.js": {
+    "mtime": 1777835702.6227465,
+    "hash": "b7a276812a6e00141452ec74c1dfc4a9"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\utils.js": {
+    "mtime": 1777814585.3906167,
+    "hash": "92417444ff2e7d5ce91bcbaeaa20a2f3"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\api\\feed.js": {
+    "mtime": 1778135569.7910438,
+    "hash": "e167a77b405fad7f3724a5c8611ca572"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\api\\products.js": {
+    "mtime": 1777810461.039797,
+    "hash": "31305a51addffe3895f02fe0bf0e97a1"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\api\\requests.js": {
+    "mtime": 1777810468.646624,
+    "hash": "6f05f72512d6973af020bfce4f00db76"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\api\\useHomeData.js": {
+    "mtime": 1777808917.9052868,
+    "hash": "c8efabf304f5852d541e1a4ea99d7d80"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\auth\\signup.js": {
+    "mtime": 1778133638.3898501,
+    "hash": "b4de6b48aeb9530cdff1fc726e152a63"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\feed\\feedClient.js": {
+    "mtime": 1778137147.6035893,
+    "hash": "361946393a47c8662da5eb367d9bc951"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\hooks\\useDelayedFallback.js": {
+    "mtime": 1777807941.1287348,
+    "hash": "75156a4235d595f3f112ed961397d478"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\hooks\\useEngagementNormalizer.js": {
+    "mtime": 1777812398.835156,
+    "hash": "ccb5a866a1dc65490e61e4a59e06f401"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\hooks\\useFeed.js": {
+    "mtime": 1778137147.601587,
+    "hash": "6c60d26ddecbe4422f161cabd547ab6d"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\hooks\\useLRUCache.js": {
+    "mtime": 1777812379.1206322,
+    "hash": "642af7b9d717a12baf60e5e52f99449f"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\hooks\\useScrollVelocity.js": {
+    "mtime": 1777812362.2389235,
+    "hash": "e5e9f7bab20ecaca97cbf1a0d6a37c9c"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\hooks\\useStabilizedScrollProgress.js": {
+    "mtime": 1777807922.6088576,
+    "hash": "d90fa8aa108e7c3ffbe02b1b3fedcb9c"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\hooks\\useStableFeed.js": {
+    "mtime": 1777812390.176628,
+    "hash": "9e55a46aad3dfcd2da17a3ada769bc44"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\utils\\feedRanking.js": {
+    "mtime": 1777812409.0436275,
+    "hash": "2873907a8aac6e1311e3c3dee9bf131b"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\utils\\slugify.js": {
+    "mtime": 1777911799.80706,
+    "hash": "3e17381733c17578ce32a7e534a1aca7"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\utils\\tagHelpers.js": {
+    "mtime": 1777912310.4857562,
+    "hash": "f48e2c8a6c5d5a758d3b5f6c09a66da8"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\utils\\useAuthUser.js": {
+    "mtime": 1777893989.5254934,
+    "hash": "b92da9351637677d54609de8a1f3cc36"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\utils\\validateContent.js": {
+    "mtime": 1777894065.622477,
+    "hash": "41fae438b343038f6e7dadf85e2ec0d6"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\lib\\utils\\withRetry.js": {
+    "mtime": 1777807961.879052,
+    "hash": "4895ef3afcc7e627548698e45d4db707"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\providers\\QueryProvider.js": {
+    "mtime": 1778093381.125955,
+    "hash": "8ace55005aed961d594e0a3e2c12f517"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\providers\\ThemeProvider.js": {
+    "mtime": 1778093421.1428668,
+    "hash": "9059341d78091c136f7fd32d10da0702"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\AGENTS.md": {
+    "mtime": 1778056128.4530206,
+    "hash": "7f76c3eea5f55d78868880a7c6d89173"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\CLAUDE.md": {
+    "mtime": 1777607743.6952746,
+    "hash": "5c27369b226fcf2be8a6cfe52224e767"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\GEMINI.md": {
+    "mtime": 1778077067.9422588,
+    "hash": "2ed67c68f28bc1ef95ac24167431d7e8"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\README.md": {
+    "mtime": 1777624621.6113954,
+    "hash": "b01fb0ed37b26f14743637fa800a4625"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\structure.txt": {
+    "mtime": 1777738450.4675577,
+    "hash": "877da56f3cda299b10827d8003b42f5b"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\attention engine.txt": {
+    "mtime": 1778135554.761197,
+    "hash": "95466e9384c3a8302da3845b86ea98da"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\app\\HUB.txt": {
+    "mtime": 1777815759.7943983,
+    "hash": "121f4c64af45a4f0031c462c479b0fa4"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\public\\file.svg": {
+    "mtime": 1777607422.8318727,
+    "hash": "d09f95206c3fa0bb9bd9fefabfd0ea71"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\public\\globe.svg": {
+    "mtime": 1777607422.8378081,
+    "hash": "2aaafa6a49b6563925fe440891e32717"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\public\\next.svg": {
+    "mtime": 1777607422.8448079,
+    "hash": "8e061864f388b47f33a1c3780831193e"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\public\\vercel.svg": {
+    "mtime": 1777607422.8518069,
+    "hash": "c0af2f507b369b085b35ef4bbe3bcf1e"
+  },
+  "C:\\Users\\moham\\OneDrive\\Desktop\\bharat-startup\\public\\window.svg": {
+    "mtime": 1777607422.8583634,
+    "hash": "a2760511c65806022ad20adf74370ff3"
+  }
+}

@@ -1,7 +1,9 @@
 // app/layout.js
 import './globals.css';
 import { Navbar } from '@/components/common/Navbar';
-import { Toaster } from 'sonner'; // ✅ added for toast notifications
+import { Toaster } from 'sonner';
+import { ThemeProvider } from '@/providers/ThemeProvider';
+import { QueryProvider } from '@/providers/QueryProvider';
 
 export const metadata = {
   title: 'Marketplace Chat',
@@ -17,10 +19,13 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning>
       <body className="bg-bg-base text-text-primary antialiased">
-        <Navbar />
-        {children}
-        {/* ✅ Sonner Toaster – global notifications, positioned top-right with rich colors */}
-        <Toaster position="top-right" richColors closeButton />
+        <ThemeProvider>
+          <QueryProvider>
+            <Navbar />
+            {children}
+            <Toaster position="top-right" richColors closeButton />
+          </QueryProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

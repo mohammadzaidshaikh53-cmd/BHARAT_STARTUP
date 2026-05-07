@@ -45,7 +45,7 @@ async function checkTableExists(tableName) {
 }
 
 // -----------------------------------------------------------------------------
-// NEW CHAT MODAL (inline for self‑contained component)
+// NEW CHAT MODAL (FIXED: uses profiles table, not users)
 // -----------------------------------------------------------------------------
 function NewChatModal({ isOpen, onClose, currentUserId, onChatCreated }) {
   const [searchTerm, setSearchTerm] = useState('');
@@ -61,10 +61,11 @@ function NewChatModal({ isOpen, onClose, currentUserId, onChatCreated }) {
 
     const fetchUsers = async () => {
       setLoading(true);
+      // ✅ FIXED: Query profiles table instead of users
       const { data, error } = await supabase
-        .from('users')
-        .select('id, raw_user_meta_data, email')
-        .ilike('raw_user_meta_data->>full_name', `%${searchTerm}%`)
+        .from('profiles')
+        .select('id, full_name, avatar_url')
+        .ilike('full_name', `%${searchTerm}%`)
         .neq('id', currentUserId)
         .limit(10);
       if (!error) setUsers(data || []);
@@ -164,7 +165,7 @@ function NewChatModal({ isOpen, onClose, currentUserId, onChatCreated }) {
             <div className="text-center py-6 text-gray-500 text-sm">No users found</div>
           )}
           {users.map(user => {
-            const name = user.raw_user_meta_data?.full_name || user.email?.split('@')[0] || 'User';
+            const name = user.full_name || 'User';
             return (
               <button
                 key={user.id}
@@ -172,10 +173,10 @@ function NewChatModal({ isOpen, onClose, currentUserId, onChatCreated }) {
                 disabled={creating}
                 className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-50 dark:hover:bg-white/[0.03] transition-colors text-left"
               >
-                <Avatar name={name} size={40} />
+                <Avatar name={name} src={user.avatar_url} size={40} />
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{name}</p>
-                  <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                  {/* Email is not available in profiles – you can optionally join users table if needed */}
                 </div>
               </button>
             );
