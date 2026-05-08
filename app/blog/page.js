@@ -87,9 +87,8 @@ function BlogCard({ post, index, onClick, track }) {
             <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded-full uppercase font-bold text-gray-500">
               {post.item_type || 'Blog'}
             </span>
-            <span className="text-xs text-orange-500 font-mono">
-              Score: {post.personalized_score?.toFixed(2)}
-            </span>
+            {/* Score display removed from production UI — internal metric only */}
+            {/* <span className="text-xs text-orange-500 font-mono">Score: {post.personalized_score?.toFixed(2)}</span> */}
           </div>
           <h2 className="text-xl font-bold mb-2 line-clamp-2 dark:text-white leading-snug">{post.title}</h2>
           <p className="text-gray-600 dark:text-gray-300 line-clamp-3 text-sm leading-relaxed">{post.summary}</p>

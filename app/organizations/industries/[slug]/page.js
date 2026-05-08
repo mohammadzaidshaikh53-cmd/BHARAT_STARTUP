@@ -8,7 +8,13 @@ import { ArrowLeft, ArrowUpDown, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { fetchIndustryBySlug, fetchOrganizationsByIndustry } from "../../components/data";
 import { useDebounce } from "../../components/hooks/useDebounce";
-import { OrganizationCard, LoadingSkeleton, EmptyState, SearchInput, PageBackground, EcosystemPulse, ErrorFallback } from "../../components";
+import { OrganizationCard } from "../../components/OrganizationCard";
+import { LoadingSkeleton } from "../../components/LoadingSkeleton";
+import { EmptyState } from "../../components/EmptyState";
+import { SearchInput } from "../../components/SearchInput";
+import { PageBackground } from "../../components/PageBackground";
+import { EcosystemPulse } from "../../components/EcosystemPulse";
+import { ErrorFallback } from "../../components/ErrorFallback";
 
 const INDUSTRY_GLOWS = {
   technology: "rgba(59,130,246,0.05)",

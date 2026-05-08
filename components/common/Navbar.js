@@ -911,42 +911,10 @@ export function Navbar() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
+  // TODO: Replace with real notification fetching from Supabase
   useEffect(() => {
     if (!user) return;
-    setNotifications([
-      {
-        id: '1',
-        type: 'success',
-        title: 'Organization Verified',
-        body: 'Your organization "Quantum Dynamics" has been granted Enterprise Verification.',
-        read: false,
-        created_at: new Date(Date.now() - 5 * 60000).toISOString(),
-      },
-      {
-        id: '2',
-        type: 'offer',
-        title: 'New Partnership Request',
-        body: 'Stark Industries wants to establish a verified connection with your firm.',
-        read: false,
-        created_at: new Date(Date.now() - 45 * 60000).toISOString(),
-      },
-      {
-        id: '3',
-        type: 'system',
-        title: 'Trust Score Updated',
-        body: 'Your organization trust score increased to 98/100. View the breakdown.',
-        read: true,
-        created_at: new Date(Date.now() - 26 * 3600000).toISOString(),
-      },
-      {
-        id: '4',
-        type: 'message',
-        title: 'Exhibition Booking Confirmed',
-        body: 'Your space "Premium Showcase A" has been booked for the upcoming event.',
-        read: true,
-        created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
-      },
-    ]);
+    setNotifications([]);
   }, [user]);
 
   const handleLogout = useCallback(async () => {

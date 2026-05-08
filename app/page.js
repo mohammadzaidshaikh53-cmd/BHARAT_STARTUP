@@ -1,4 +1,8 @@
 'use client';
+// NOTE: This page is currently a full client component.
+// Future improvement: extract data-fetching into a Server Component wrapper
+// and keep only interactive parts (feed filters, engagement tracking) as 'use client'.
+// See audit report Phase 3 for migration plan.
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
@@ -595,7 +599,8 @@ function FeedCard({ item, index, onClick, track, boostCategory }) {
         <div className="px-4 py-3 bg-gray-50 dark:bg-gray-750 border-t border-gray-100 dark:border-gray-700 flex items-center gap-4 text-sm text-gray-500">
           <span>👍 {item.likes || 0}</span>
           <span>💬 {item.replies || 0}</span>
-          <span className="ml-auto text-xs">Score: {item.personalized_score?.toFixed(2)}</span>
+          {/* Score display removed from production UI — internal metric only */}
+          {/* <span className="ml-auto text-xs">Score: {item.personalized_score?.toFixed(2)}</span> */}
         </div>
       </Link>
     </motion.article>

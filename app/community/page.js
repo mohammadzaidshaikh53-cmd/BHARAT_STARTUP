@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useFeed } from '@/lib/hooks/useFeed';
 import { useInView } from 'react-intersection-observer';
 import { motion, AnimatePresence } from 'framer-motion';
-import Link from 'next/image'; // Assuming Image for UI
+import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/common/Avatar';
@@ -124,7 +124,8 @@ function FeedCard({ item, index, onClick, track }) {
           <div className="px-5 py-3 bg-gray-800/50 border-t border-gray-700/50 flex items-center gap-5 text-sm text-gray-400">
             <span className="flex items-center gap-1.5 hover:text-rose-400 transition-colors">👍 {item?.likes || 0}</span>
             <span className="flex items-center gap-1.5 hover:text-cyan-400 transition-colors">💬 {item?.replies || 0}</span>
-            <span className="ml-auto font-mono text-orange-400 text-xs">Score: {item?.personalized_score?.toFixed(2)}</span>
+            {/* Score display removed from production UI — internal metric only */}
+            {/* <span className="ml-auto font-mono text-orange-400 text-xs">Score: {item?.personalized_score?.toFixed(2)}</span> */}
           </div>
         </Link>
       </div>

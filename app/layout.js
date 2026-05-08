@@ -6,8 +6,11 @@ import { ThemeProvider } from '@/providers/ThemeProvider';
 import { QueryProvider } from '@/providers/QueryProvider';
 
 export const metadata = {
-  title: 'Marketplace Chat',
-  description: 'Real-time messaging for buyers and sellers',
+  title: {
+    default: 'Bharat Startup',
+    template: '%s | Bharat Startup',
+  },
+  description: 'B2B marketplace connecting Indian manufacturers, suppliers, and buyers.',
 };
 
 export const viewport = {
