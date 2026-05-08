@@ -1,7 +1,9 @@
 "use client";
 
 import { motion } from "framer-motion";
-import {
+import { useParams, useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
+import { 
   Settings,
   Users,
   FileCheck,
@@ -16,117 +18,125 @@ import {
   BellRing,
   TrendingUp,
 } from "lucide-react";
-
-const stats = [
-  {
-    title: "Trust Score",
-    value: "98",
-    suffix: "/100",
-    change: "+2.4%",
-    icon: Shield,
-    color: "from-emerald-500 to-teal-500",
-    sparkline: [60, 70, 65, 80, 75, 90, 98],
-  },
-  {
-    title: "Active Members",
-    value: "124",
-    suffix: "",
-    change: "+12 this month",
-    icon: Users,
-    color: "from-blue-500 to-indigo-500",
-    sparkline: [80, 90, 85, 95, 100, 110, 124],
-  },
-  {
-    title: "Listed Products",
-    value: "42",
-    suffix: "",
-    change: "6 pending review",
-    icon: Package,
-    color: "from-purple-500 to-pink-500",
-    sparkline: [30, 32, 35, 38, 40, 41, 42],
-  },
-  {
-    title: "Monthly Revenue",
-    value: "$128k",
-    suffix: "",
-    change: "+18.2% vs last month",
-    icon: BarChart3,
-    color: "from-amber-500 to-orange-500",
-    sparkline: [90, 100, 105, 110, 115, 120, 128],
-  },
-];
-
-const recentActivity = [
-  {
-    text: "New member John Doe joined",
-    time: "2h ago",
-    icon: Users,
-    type: "success",
-    avatar: "JD",
-  },
-  {
-    text: "Verification docs approved",
-    time: "5h ago",
-    icon: CheckCircle2,
-    type: "success",
-    avatar: "SY",
-  },
-  {
-    text: 'Product "Quantum SDK" pending review',
-    time: "1d ago",
-    icon: Clock,
-    type: "warning",
-    avatar: "QM",
-  },
-  {
-    text: "Trust score recalculated",
-    time: "2d ago",
-    icon: Shield,
-    type: "info",
-    avatar: "SY",
-  },
-];
-
-const managementCards = [
-  {
-    title: "Organization Settings",
-    desc: "Update name, logo, and details",
-    icon: Settings,
-    href: "/dashboard/organization/1/settings",
-  },
-  {
-    title: "Team Management",
-    desc: "Invite members, assign roles",
-    icon: Users,
-    href: "/dashboard/organization/1/team",
-  },
-  {
-    title: "Verification Center",
-    desc: "Upload docs, view status",
-    icon: FileCheck,
-    href: "/dashboard/organization/1/verification",
-  },
-  {
-    title: "Product Catalog",
-    desc: "Manage listings and pricing",
-    icon: Package,
-    href: "/dashboard/organization/1/products",
-  },
-  {
-    title: "Exhibition Spaces",
-    desc: "Configure bookable spaces",
-    icon: LayoutGrid,
-    href: "/dashboard/organization/1/spaces",
-  },
-  {
-    title: "Advanced Analytics",
-    desc: "Track growth and engagement",
-    icon: BarChart3,
-    href: "/dashboard/organization/1/analytics",
-  },
-];
+import { 
+  getOrganizationById, 
+  getOrganizationStats, 
+  getRecentActivity 
+} from "@/services/organizationService";
 
 export default function OrganizationDashboard() {
+  const params = useParams();
+  const router = useRouter();
+  const [org, setOrg] = useState(null);
+  const [stats, setStats] = useState([]);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      const orgId = params.id;
+      const [orgData, statsData, activityData] = await Promise.all([
+        getOrganizationById(orgId),
+        getOrganizationStats(orgId),
+        getRecentActivity(orgId)
+      ]);
+
+      if (!orgData) {
+        router.push("/dashboard");
+        return;
+      }
+
+      setOrg(orgData);
+      setStats([
+        {
+          title: "Trust Score",
+          value: orgData.trust_score || 0,
+          suffix: "/100",
+          change: "Live",
+          icon: Shield,
+          color: "from-emerald-500 to-teal-500",
+          sparkline: [60, 70, 65, 80, 75, 90, orgData.trust_score || 0],
+        },
+        {
+          title: "Active Members",
+          value: statsData.memberCount,
+          suffix: "",
+          change: "Team Size",
+          icon: Users,
+          color: "from-blue-500 to-indigo-500",
+          sparkline: [5, 10, 8, 15, 20, statsData.memberCount],
+        },
+        {
+          title: "Listed Products",
+          value: statsData.productCount,
+          suffix: "",
+          change: "Marketplace",
+          icon: Package,
+          color: "from-purple-500 to-pink-500",
+          sparkline: [10, 15, 20, 25, 30, statsData.productCount],
+        },
+        {
+          title: "Monthly Revenue",
+          value: "$0",
+          suffix: "",
+          change: "Phase 3 Feature",
+          icon: BarChart3,
+          color: "from-amber-500 to-orange-500",
+          sparkline: [0, 0, 0, 0, 0, 0],
+        },
+      ]);
+      setActivities(activityData);
+      setLoading(false);
+    }
+    load();
+  }, [params.id, router]);
+
+  const managementCards = [
+    {
+      title: "Organization Settings",
+      desc: "Update name, logo, and details",
+      icon: Settings,
+      href: `/dashboard/organization/${params.id}/settings`,
+    },
+    {
+      title: "Team Management",
+      desc: "Invite members, assign roles",
+      icon: Users,
+      href: `/dashboard/organization/${params.id}/team`,
+    },
+    {
+      title: "Verification Center",
+      desc: "Upload docs, view status",
+      icon: FileCheck,
+      href: `/dashboard/organization/${params.id}/verification`,
+    },
+    {
+      title: "Product Catalog",
+      desc: "Manage listings and pricing",
+      icon: Package,
+      href: `/dashboard/organization/${params.id}/products`,
+    },
+    {
+      title: "Exhibition Spaces",
+      desc: "Configure bookable spaces",
+      icon: LayoutGrid,
+      href: `/dashboard/organization/${params.id}/spaces`,
+    },
+    {
+      title: "Advanced Analytics",
+      desc: "Track growth and engagement",
+      icon: BarChart3,
+      href: `/dashboard/organization/${params.id}/analytics`,
+    },
+  ];
+
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+    </div>
+  );
+
   return (
     <div className="min-h-screen bg-slate-50/80">
       {/* Sticky top bar */}
@@ -134,13 +144,13 @@ export default function OrganizationDashboard() {
         <div className="max-w-7xl mx-auto px-6 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold shadow-sm">
-              Q
+              {org.name?.charAt(0)}
             </div>
             <div>
               <h1 className="text-lg font-bold text-slate-900 leading-tight">
-                Quantum Dynamics
+                {org.name}
               </h1>
-              <p className="text-xs text-slate-500">Organization Dashboard</p>
+              <p className="text-xs text-slate-500">{org.industry?.name || 'Organization Dashboard'}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
@@ -159,8 +169,8 @@ export default function OrganizationDashboard() {
         {/* Header Greeting */}
         <div className="mb-8 flex items-end justify-between">
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">Good morning, Admin</h2>
-            <p className="text-slate-500 text-sm mt-1">Here's what's happening with your organization today.</p>
+            <h2 className="text-2xl font-bold text-slate-900">Good morning, {org.userRole}</h2>
+            <p className="text-slate-500 text-sm mt-1">Here's what's happening with {org.name} today.</p>
           </div>
           <div className="hidden md:flex items-center gap-2 text-sm text-emerald-600 font-medium bg-emerald-50 px-3 py-1.5 rounded-full border border-emerald-100">
             <TrendingUp className="w-4 h-4" /> All Systems Operational
@@ -183,7 +193,7 @@ export default function OrganizationDashboard() {
               {/* Mini Sparkline visualization */}
               <div className="absolute bottom-0 left-0 right-0 h-8 flex items-end gap-[2px] px-2 opacity-20 group-hover:opacity-40 transition-opacity">
                 {stat.sparkline.map((val, idx) => (
-                  <div key={idx} className="flex-1 bg-indigo-500 rounded-t-sm" style={{ height: `${(val / Math.max(...stat.sparkline)) * 100}%` }}></div>
+                  <div key={idx} className="flex-1 bg-indigo-500 rounded-t-sm" style={{ height: `${(val / (Math.max(...stat.sparkline) || 1)) * 100}%` }}></div>
                 ))}
               </div>
 
@@ -241,7 +251,9 @@ export default function OrganizationDashboard() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900 mb-4">Recent Activity</h2>
             <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
-              {recentActivity.map((item, i) => (
+              {activities.length === 0 ? (
+                <div className="p-8 text-center text-gray-500 text-sm">No recent activity</div>
+              ) : activities.map((item, i) => (
                 <motion.div
                   key={i}
                   initial={{ opacity: 0, x: 20 }}
@@ -250,15 +262,15 @@ export default function OrganizationDashboard() {
                   className="flex items-start gap-3 p-4 border-b border-slate-50 last:border-none hover:bg-slate-50/50 transition-colors"
                 >
                   <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${
-                    item.type === "success" ? "bg-emerald-50 text-emerald-600" :
-                    item.type === "warning" ? "bg-amber-50 text-amber-600" :
-                    "bg-blue-50 text-blue-600"
+                    item.type === "member" ? "bg-emerald-50 text-emerald-600" :
+                    item.type === "product" ? "bg-blue-50 text-blue-600" :
+                    "bg-amber-50 text-amber-600"
                   }`}>
-                    {item.avatar}
+                    {item.type === 'member' ? '👤' : '📦'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-slate-800 font-medium">{item.text}</p>
-                    <p className="text-xs text-slate-400 mt-0.5">{item.time}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{new Date(item.time).toLocaleDateString()}</p>
                   </div>
                 </motion.div>
               ))}

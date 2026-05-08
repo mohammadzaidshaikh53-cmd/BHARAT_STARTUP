@@ -1,9 +1,8 @@
 'use client';
 
-// components/common/NotificationBell.js — Notification indicator for Navbar
-
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
+import { getNotifications, markAsRead, subscribeToNotifications } from '@/services/notificationService';
 
 export default function NotificationBell({ userId }) {
   const [notifications, setNotifications] = useState([]);
@@ -11,15 +10,26 @@ export default function NotificationBell({ userId }) {
   const [unreadCount, setUnreadCount] = useState(0);
   const dropdownRef = useRef(null);
 
-  // Demo notifications for MVP
   useEffect(() => {
     if (!userId) return;
-    setNotifications([
-      { id: 1, type: 'inquiry', message: 'New inquiry on your product "Organic Turmeric"', time: '2 min ago', read: false, link: '/dashboard' },
-      { id: 2, type: 'verified', message: 'Your product has been verified ✓', time: '1 hour ago', read: false, link: '/dashboard' },
-      { id: 3, type: 'rfq', message: 'A buyer posted a requirement matching your products', time: '3 hours ago', read: true, link: '/rfq' },
-    ]);
-    setUnreadCount(2);
+
+    // Load initial notifications
+    const load = async () => {
+      const data = await getNotifications(userId);
+      setNotifications(data);
+      setUnreadCount(data.filter(n => !n.is_read).length);
+    };
+    load();
+
+    // Subscribe to real-time updates
+    const subscription = subscribeToNotifications(userId, (newNotification) => {
+      setNotifications(prev => [newNotification, ...prev]);
+      setUnreadCount(prev => prev + 1);
+    });
+
+    return () => {
+      if (subscription) subscription.unsubscribe();
+    };
   }, [userId]);
 
   // Close on outside click
@@ -29,8 +39,10 @@ export default function NotificationBell({ userId }) {
     return () => document.removeEventListener('mousedown', handler);
   }, []);
 
-  const markAllRead = () => {
-    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  const handleMarkAllRead = async () => {
+    const unread = notifications.filter(n => !n.is_read);
+    await Promise.all(unread.map(n => markAsRead(n.id)));
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     setUnreadCount(0);
   };
 
@@ -56,21 +68,21 @@ export default function NotificationBell({ userId }) {
           <div className="px-4 py-3 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
             <h3 className="font-bold text-gray-900 dark:text-gray-100 text-sm">Notifications</h3>
             {unreadCount > 0 && (
-              <button onClick={markAllRead} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Mark all read</button>
+              <button onClick={handleMarkAllRead} className="text-xs text-blue-600 hover:text-blue-700 font-medium">Mark all read</button>
             )}
           </div>
           <div className="max-h-80 overflow-y-auto">
             {notifications.length === 0 ? (
               <div className="p-6 text-center text-gray-500 text-sm">No notifications yet</div>
             ) : notifications.map(n => (
-              <Link key={n.id} href={n.link} onClick={() => setIsOpen(false)} className={`block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-50 dark:border-gray-700/50 last:border-0 ${!n.read ? 'bg-blue-50/50 dark:bg-blue-500/5' : ''}`}>
+              <Link key={n.id} href={n.link || '#'} onClick={() => setIsOpen(false)} className={`block px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors border-b border-gray-50 dark:border-gray-700/50 last:border-0 ${!n.is_read ? 'bg-blue-50/50 dark:bg-blue-500/5' : ''}`}>
                 <div className="flex gap-3">
                   <span className="text-lg">{typeIcons[n.type] || '📌'}</span>
                   <div className="flex-1 min-w-0">
-                    <p className={`text-sm ${!n.read ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}`}>{n.message}</p>
-                    <p className="text-xs text-gray-400 mt-1">{n.time}</p>
+                    <p className={`text-sm ${!n.is_read ? 'font-semibold text-gray-900 dark:text-gray-100' : 'text-gray-600 dark:text-gray-400'}`}>{n.message || n.title}</p>
+                    <p className="text-xs text-gray-400 mt-1">{n.created_at ? new Date(n.created_at).toLocaleDateString() : ''}</p>
                   </div>
-                  {!n.read && <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-2" />}
+                  {!n.is_read && <span className="w-2 h-2 bg-blue-500 rounded-full shrink-0 mt-2" />}
                 </div>
               </Link>
             ))}

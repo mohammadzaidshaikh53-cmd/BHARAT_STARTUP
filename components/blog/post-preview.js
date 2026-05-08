@@ -2,6 +2,7 @@
 'use client';
 
 import { Avatar } from '@/components/common/Avatar';
+import { sanitizeHTML } from '@/lib/utils/sanitize';
 
 export function PostPreview({ title, excerpt, content, tags, imageUrl, author, slug }) {
   const plainContent = content?.replace(/<[^>]*>/g, '') || '';
@@ -33,7 +34,7 @@ export function PostPreview({ title, excerpt, content, tags, imageUrl, author, s
         <p className="text-gray-500 text-sm italic">{excerpt || 'No excerpt yet'}</p>
       </div>
       <div className="prose prose-sm max-w-none">
-        {content ? <div dangerouslySetInnerHTML={{ __html: content.slice(0, 300) + '…' }} /> : <p className="text-gray-400">Your content will appear here.</p>}
+        {content ? <div dangerouslySetInnerHTML={{ __html: sanitizeHTML(content.slice(0, 300) + '…') }} /> : <p className="text-gray-400">Your content will appear here.</p>}
       </div>
     </div>
   );

@@ -1,6 +1,46 @@
-// middleware.js — Server-side auth guard for protected routes
-// Uses @supabase/supabase-js cookie inspection (compatible with current stack)
+import { createServerClient } from '@supabase/ssr';
 import { NextResponse } from 'next/server';
+
+/**
+ * Enterprise Security Headers
+ * Pattern from: Google, Stripe, Vercel
+ */
+const SECURITY_HEADERS = {
+  // Content Security Policy
+  'Content-Security-Policy': [
+    "default-src 'self'",
+    "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "font-src 'self' https://fonts.gstatic.com",
+    "img-src 'self' data: https: blob:",
+    "media-src 'self' https: blob:",
+    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
+    "frame-ancestors 'none'",
+  ].join('; '),
+
+  // X-Frame-Options - Clickjacking protection
+  'X-Frame-Options': 'DENY',
+
+  // X-Content-Type-Options - MIME sniffing protection
+  'X-Content-Type-Options': 'nosniff',
+
+  // X-XSS-Protection - Legacy XSS protection
+  'X-XSS-Protection': '1; mode=block',
+
+  // Strict Transport Security (HSTS)
+  'Strict-Transport-Security': 'max-age=31536000; includeSubDomains; preload',
+
+  // Referrer Policy
+  'Referrer-Policy': 'strict-origin-when-cross-origin',
+
+  // Permissions Policy
+  'Permissions-Policy': [
+    'camera=()',
+    'microphone=()',
+    'geolocation=()',
+    'interest-cohort=()',
+  ].join(', '),
+};
 
 const PROTECTED_ROUTES = [
   '/dashboard',
@@ -13,52 +53,62 @@ const PROTECTED_ROUTES = [
   '/events/create',
 ];
 
-const PUBLIC_ROUTES = [
-  '/',
-  '/login',
-  '/auth/callback',
-  '/reset-password',
-  '/marketplace',
-  '/products',
-  '/suppliers',
-  '/rfq',
-  '/events',
-  '/community',
-  '/blog',
-  '/discussions',
-  '/ideas',
-  '/qa',
-  '/biographies',
-  '/motivation',
-  '/organizations',
-];
+export async function middleware(request) {
+  let response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
 
-export function middleware(request) {
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    {
+      cookies: {
+        getAll() {
+          return request.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => request.cookies.set(name, value));
+          response = NextResponse.next({
+            request: {
+              headers: request.headers,
+            },
+          });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
+
+  const { data: { user } } = await supabase.auth.getUser();
+
   const { pathname } = request.nextUrl;
-
-  // Check if this is a protected route
   const isProtected = PROTECTED_ROUTES.some(
     (route) => pathname === route || pathname.startsWith(route + '/')
   );
 
-  if (!isProtected) {
-    return NextResponse.next();
-  }
-
-  // Check for Supabase auth cookies
-  // Supabase stores session in cookies with specific naming patterns
-  const cookies = request.cookies;
-  const hasAuthCookie =
-    cookies.getAll().some((c) => c.name.includes('auth-token') || c.name.includes('sb-')) &&
-    cookies.getAll().some((c) => c.value && c.value.length > 20);
-
-  if (!hasAuthCookie) {
+  if (isProtected && !user) {
     const loginUrl = new URL('/login', request.url);
     loginUrl.searchParams.set('redirect', pathname);
     return NextResponse.redirect(loginUrl);
   }
 
-  return NextResponse.next();
+  // Add security headers to response
+  const response = NextResponse.next({
+    request: {
+      headers: request.headers,
+    },
+  });
+
+  // Apply security headers
+  Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
+    response.headers.set(key, value);
+  });
+
+  return response;
 }
 
 export const config = {

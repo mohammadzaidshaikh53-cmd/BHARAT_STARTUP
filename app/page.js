@@ -14,6 +14,7 @@ import Link from 'next/link';
 import { Container } from '@/components/ui/Container';
 import { Button } from '@/components/ui/Button';
 import { Avatar } from '@/components/common/Avatar';
+import { usePostTracking } from '@/lib/hooks/usePostTracking';
 
 const PAGE_SIZE = 12;
 const PREFETCH_THRESHOLD = 0.7;
@@ -105,43 +106,43 @@ function normalizeFeedResponse(payload) {
 }
 
 // =============================================================================
-// Content Type Config
+// Content Type Config (Futuristic Dark Mode Variants)
 // =============================================================================
 const CONTENT_CONFIG = {
   blog: {
-    label: 'Blog',
-    color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
-    icon: '📝',
+    label: 'INTELLIGENCE',
+    color: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+    icon: '⎔',
     route: (item) => `/blog/${item.slug || item.original_id || item.item_id}`,
   },
   idea: {
-    label: 'Idea',
-    color: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
-    icon: '💡',
+    label: 'INNOVATION',
+    color: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
+    icon: '✧',
     route: (item) => `/ideas/${item.slug || item.original_id || item.item_id}`,
   },
   question: {
-    label: 'Q&A',
-    color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300',
-    icon: '❓',
+    label: 'QUERY',
+    color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+    icon: '◈',
     route: (item) => `/qa/${item.slug || item.original_id || item.item_id}`,
   },
   discussion: {
-    label: 'Discussion',
-    color: 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-300',
-    icon: '💬',
+    label: 'NETWORK',
+    color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+    icon: '∿',
     route: (item) => `/discussions/${item.slug || item.original_id || item.item_id}`,
   },
   motivation: {
-    label: 'Motivation',
-    color: 'bg-rose-100 text-rose-700 dark:bg-rose-900/30 dark:text-rose-300',
-    icon: '🔥',
+    label: 'MOMENTUM',
+    color: 'bg-rose-500/10 text-rose-400 border-rose-500/20',
+    icon: '⚡',
     route: (item) => `/motivation/${item.slug || item.original_id || item.item_id}`,
   },
   biography: {
-    label: 'Biography',
-    color: 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-    icon: '👤',
+    label: 'ENTITY',
+    color: 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+    icon: '⌬',
     route: (item) => `/biographies/${item.slug || item.original_id || item.item_id}`,
   },
 };
@@ -423,122 +424,7 @@ function applyDiversity(items) {
 // =============================================================================
 // usePostTracking (with fast skip detection)
 // =============================================================================
-function usePostTracking(postId, trackFn) {
-  const elementRef = useRef(null);
-  const stateRef = useRef({
-    maxVisibleRatio: 0,
-    visibleStartTime: null,
-    cumulativeTime: 0,
-    attentionSent: false,
-    skipSent: false,
-    dwellSent: false,
-  });
-  const trackRef = useStableRef(trackFn);
-  const postIdRef = useStableRef(postId);
-
-  useEffect(() => {
-    const element = elementRef.current;
-    if (!element || !trackRef.current || !postIdRef.current) return;
-
-    const state = stateRef.current;
-    let throttleTimer = null;
-
-    const sendScrollDepth = () => {
-      if (state.maxVisibleRatio > 0 && trackRef.current) {
-        trackRef.current({
-          post_id: postIdRef.current,
-          event_type: 'scroll_depth',
-          metadata: { max_visible_percent: Math.round(state.maxVisibleRatio * 100) },
-        });
-        state.maxVisibleRatio = 0;
-      }
-    };
-
-    const throttledSend = () => {
-      if (throttleTimer) return;
-      throttleTimer = setTimeout(() => {
-        sendScrollDepth();
-        throttleTimer = null;
-      }, 1000);
-    };
-
-    const observer = new IntersectionObserver((entries) => {
-      const entry = entries[0];
-      const ratio = entry.intersectionRatio;
-
-      if (ratio > state.maxVisibleRatio) {
-        state.maxVisibleRatio = ratio;
-        throttledSend();
-      }
-
-      if (entry.isIntersecting) {
-        if (state.visibleStartTime === null) {
-          state.visibleStartTime = performance.now();
-        }
-      } else {
-        // Not intersecting anymore – calculate duration and decide on attention/skip
-        if (state.visibleStartTime !== null) {
-          const visibleMs = performance.now() - state.visibleStartTime;
-          state.cumulativeTime += visibleMs;
-          state.visibleStartTime = null;
-
-          sendScrollDepth();
-
-          // Fast skip detection (< 1000ms total viewed)
-          if (!state.skipSent && state.cumulativeTime < 1000) {
-            trackRef.current({
-              post_id: postIdRef.current,
-              event_type: 'fast_skip',
-              metadata: { total_visible_ms: Math.round(state.cumulativeTime) },
-            });
-            state.skipSent = true;
-          }
-
-          // Attention detection (>= 4000ms cumulative)
-          if (!state.attentionSent && state.cumulativeTime >= 4000) {
-            trackRef.current({
-              post_id: postIdRef.current,
-              event_type: 'attention',
-              metadata: { total_visible_ms: Math.round(state.cumulativeTime) },
-            });
-            state.attentionSent = true;
-          }
-        }
-      }
-    }, { threshold: [0, 0.1, 0.25, 0.5, 0.75, 1] });
-
-    observer.observe(element);
-
-    return () => {
-      if (throttleTimer) clearTimeout(throttleTimer);
-      observer.disconnect();
-
-      // Finalise on unmount
-      if (state.visibleStartTime !== null) {
-        const finalMs = performance.now() - state.visibleStartTime;
-        state.cumulativeTime += finalMs;
-      }
-
-      sendScrollDepth();
-
-      if (!state.skipSent && state.cumulativeTime < 1000 && state.cumulativeTime > 0) {
-        trackRef.current({
-          post_id: postIdRef.current,
-          event_type: 'fast_skip',
-          metadata: { total_visible_ms: Math.round(state.cumulativeTime) },
-        });
-      } else if (!state.attentionSent && state.cumulativeTime >= 4000) {
-        trackRef.current({
-          post_id: postIdRef.current,
-          event_type: 'attention',
-          metadata: { total_visible_ms: Math.round(state.cumulativeTime) },
-        });
-      }
-    };
-  }, []);
-
-  return elementRef;
-}
+// usePostTracking is now imported from @/lib/hooks/usePostTracking
 
 // =============================================================================
 // FeedCard
@@ -548,59 +434,73 @@ function FeedCard({ item, index, onClick, track, boostCategory }) {
   const href = config.route(item);
   const contentType = resolveContentType(item);
   const postId = item.original_id || item.item_id;
-  const trackingRef = usePostTracking(postId, track);
+  const { elementRef, trackInteraction } = usePostTracking(postId, contentType, track);
 
   const handleClick = useCallback(() => {
     onClick?.();
+    trackInteraction('click', { score: item.personalized_score });
     if (boostCategory && contentType) boostCategory(contentType);
-  }, [onClick, boostCategory, contentType]);
+  }, [onClick, boostCategory, contentType, trackInteraction, item.personalized_score]);
 
   return (
     <motion.article
-      ref={trackingRef}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ delay: Math.min(index * 0.05, 0.3) }}
-      className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-md transition overflow-hidden border border-gray-100 dark:border-gray-700"
+      ref={elementRef}
+      layout
+      initial={{ opacity: 0, y: 30, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -20, scale: 0.95 }}
+      transition={{ 
+        delay: Math.min(index * 0.05, 0.3),
+        type: "spring",
+        stiffness: 120,
+        damping: 20
+      }}
+      whileHover={{ y: -4, scale: 1.01 }}
+      className="group relative bg-slate-900/60 backdrop-blur-xl rounded-xl border border-slate-800 hover:border-slate-600 transition-all duration-300 overflow-hidden"
     >
-      <Link href={href} className="block" onClick={handleClick}>
-        <div className="p-4 pb-0 flex items-center gap-3">
-          <Avatar
-            src={null}
-            alt={item.author_name || 'Author'}
-            fallback={item.author_name?.charAt(0) || '?'}
-            size="sm"
-          />
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 dark:text-white truncate">
-              {item.author_name || 'Anonymous'}
-            </p>
-            <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
-              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full font-medium ${config.color}`}>
-                {config.icon} {config.label}
-              </span>
-              <span>•</span>
-              <span>{item.created_at ? new Date(item.created_at).toLocaleDateString() : ''}</span>
+      <div className="absolute inset-0 bg-gradient-to-br from-white/[0.02] to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+      
+      <Link href={href} className="block relative z-10" onClick={handleClick}>
+        <div className="p-5 pb-0 flex items-start justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-lg bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300 font-mono shadow-inner">
+              {item.author_name?.charAt(0) || '⌬'}
             </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-slate-200 tracking-wide truncate">
+                {item.author_name || 'UNKNOWN_ENTITY'}
+              </p>
+              <p className="text-xs text-slate-500 font-mono mt-0.5">
+                {item.created_at ? new Date(item.created_at).toISOString().split('T')[0] : 'SYS_TIME_ERR'}
+              </p>
+            </div>
+          </div>
+          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[10px] font-mono tracking-widest uppercase border ${config.color}`}>
+            <span>{config.icon}</span> {config.label}
           </div>
         </div>
 
-        <div className="p-4 pt-3">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2 line-clamp-2">
+        <div className="p-5 pt-4">
+          <h2 className="text-lg font-medium text-white mb-2 leading-snug group-hover:text-indigo-300 transition-colors duration-300">
             {item.title}
           </h2>
           {item.summary && (
-            <p className="text-gray-600 dark:text-gray-300 text-sm line-clamp-3">
+            <p className="text-slate-400 text-sm leading-relaxed line-clamp-2">
               {item.summary}
             </p>
           )}
         </div>
 
-        <div className="px-4 py-3 bg-gray-50 dark:bg-gray-750 border-t border-gray-100 dark:border-gray-700 flex items-center gap-4 text-sm text-gray-500">
-          <span>👍 {item.likes || 0}</span>
-          <span>💬 {item.replies || 0}</span>
-          {/* Score display removed from production UI — internal metric only */}
-          {/* <span className="ml-auto text-xs">Score: {item.personalized_score?.toFixed(2)}</span> */}
+        <div className="px-5 py-3 bg-slate-950/50 border-t border-slate-800/80 flex items-center gap-6 text-xs text-slate-500 font-mono">
+          <div className="flex items-center gap-2 hover:text-slate-300 transition-colors">
+            <span className="text-indigo-500">▵</span> {item.likes || 0} YIELD
+          </div>
+          <div className="flex items-center gap-2 hover:text-slate-300 transition-colors">
+            <span className="text-cyan-500">◱</span> {item.replies || 0} NODES
+          </div>
+          <div className="ml-auto flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <span className="text-slate-600">ACCESS LOG</span> <span className="text-slate-400">→</span>
+          </div>
         </div>
       </Link>
     </motion.article>
@@ -754,53 +654,87 @@ export default function CommunityFeedPage() {
   const createPath = CREATE_ROUTES[activeFilter] || CREATE_ROUTES.all;
 
   return (
-    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 pb-24">
-      <Container className="py-6 max-w-3xl">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">🏘️ Community Feed</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Discover blogs, ideas, questions, and discussions
-            </p>
-          </div>
+    <main className="min-h-screen bg-slate-950 text-slate-300 font-sans selection:bg-indigo-500/30 pb-32 relative overflow-hidden">
+      {/* High-end cinematic background geometry */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[120vw] h-[50vh] bg-[radial-gradient(ellipse_at_top,rgba(56,189,248,0.05)_0%,rgba(0,0,0,0)_70%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.02)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.02)_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_100%)]" />
+      </div>
 
-          <div className="flex gap-2">
-            <Link href={createPath}>
-              <Button variant="primary" size="sm">
-                ✍️ Create {activeFilter === 'all' ? 'Post' : (filters.find((f) => f.key === activeFilter)?.label || 'Post')}
-              </Button>
-            </Link>
-            <Button onClick={refresh} variant="secondary" size="sm" disabled={loading}>
-              {loading ? '⟳' : '🔄'} Refresh
-            </Button>
-          </div>
-        </div>
+      <Container className="py-12 max-w-4xl relative z-10">
+        {/* Futuristic Terminal Header */}
+        <header className="mb-12 border-b border-slate-800/60 pb-8 relative">
+          <div className="absolute -left-4 top-0 w-1 h-full bg-gradient-to-b from-cyan-500 to-indigo-600 rounded-full" />
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
+            <div>
+              <div className="flex items-center gap-3 mb-3">
+                <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                <span className="text-[10px] font-mono tracking-[0.2em] text-cyan-500 uppercase">System Active // Global Uplink</span>
+              </div>
+              <h1 className="text-3xl md:text-4xl font-semibold text-white tracking-tight mb-2">
+                Ecosystem Intelligence
+              </h1>
+              <p className="text-slate-400 text-sm md:text-base max-w-lg font-light leading-relaxed">
+                Realtime synthesis of B2B commerce signals, market demands, and verified supplier telemetry.
+              </p>
+            </div>
 
-        <div className="flex gap-2 overflow-x-auto pb-2 mb-6 scrollbar-hide">
-          {filters.map((filter) => (
-            <button
-              key={filter.key}
-              onClick={() => {
-                const url = filter.key === 'all' ? '/' : `/?type=${filter.key}`;
-                router.push(url);
-              }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors ${
-                activeFilter === filter.key
-                  ? 'bg-orange-600 text-white'
-                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 border border-gray-200 dark:border-gray-700'
-              }`}
-            >
-              {filter.icon} {filter.label}
-            </button>
-          ))}
+            <div className="flex items-center gap-3">
+              <Link href={createPath}>
+                <motion.button 
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                  className="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-mono tracking-widest uppercase rounded flex items-center gap-2 transition-colors shadow-[0_0_15px_rgba(79,70,229,0.3)]"
+                >
+                  <span className="text-indigo-200">+</span> INJECT SIGNAL
+                </motion.button>
+              </Link>
+              <button 
+                onClick={refresh} 
+                disabled={loading}
+                className="w-10 h-10 rounded bg-slate-900 border border-slate-700 text-slate-400 hover:text-white hover:border-slate-500 flex items-center justify-center transition-all disabled:opacity-50"
+              >
+                {loading ? <span className="animate-spin text-cyan-500">◷</span> : <span>⟳</span>}
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Aerospace-style Filter Controls */}
+        <div className="flex gap-2 overflow-x-auto pb-4 mb-8 scrollbar-hide">
+          {filters.map((filter) => {
+            const isActive = activeFilter === filter.key;
+            return (
+              <button
+                key={filter.key}
+                onClick={() => {
+                  const url = filter.key === 'all' ? '/' : `/?type=${filter.key}`;
+                  router.push(url);
+                }}
+                className={`relative flex items-center gap-2 px-4 py-2 rounded text-[11px] font-mono tracking-wider whitespace-nowrap transition-all duration-300 ${
+                  isActive
+                    ? 'text-cyan-300 bg-cyan-950/30 border border-cyan-500/50'
+                    : 'text-slate-500 bg-slate-900/40 border border-slate-800 hover:text-slate-300 hover:bg-slate-800/60'
+                }`}
+              >
+                {isActive && (
+                  <motion.div 
+                    layoutId="activeFilterTab" 
+                    className="absolute inset-0 border border-cyan-400 rounded pointer-events-none shadow-[inset_0_0_12px_rgba(34,211,238,0.1)]" 
+                  />
+                )}
+                <span>{filter.label}</span>
+              </button>
+            );
+          })}
         </div>
 
         {error && !loading && (
-          <div className="text-center bg-red-50 dark:bg-red-500/10 p-6 rounded-2xl mb-6">
-            <p className="text-red-600 dark:text-red-400">Failed to load feed.</p>
-            <Button onClick={refresh} variant="secondary" size="sm" className="mt-3">
-              Retry
-            </Button>
+          <div className="bg-red-950/20 border border-red-900/50 p-6 rounded-lg mb-8 backdrop-blur-sm">
+            <p className="text-red-400 font-mono text-sm">ERR_CONNECTION_REFUSED: Telemetry drop.</p>
+            <button onClick={refresh} className="mt-3 text-xs font-mono text-slate-400 hover:text-white border-b border-slate-600">
+              REINITIALIZE
+            </button>
           </div>
         )}
 
@@ -819,39 +753,49 @@ export default function CommunityFeedPage() {
           </AnimatePresence>
         </div>
 
-        {loading && processedItems.length === 0 && <FeedSkeleton count={3} />}
+        {loading && processedItems.length === 0 && (
+          <div className="py-20 text-center flex flex-col items-center justify-center">
+            <div className="w-16 h-16 relative">
+              <div className="absolute inset-0 border-2 border-slate-800 rounded-full" />
+              <div className="absolute inset-0 border-2 border-cyan-500 rounded-full border-t-transparent animate-spin" />
+            </div>
+            <p className="text-cyan-500 font-mono text-xs tracking-widest mt-6 animate-pulse">ESTABLISHING UPLINK...</p>
+          </div>
+        )}
 
         {hasMore && userId && (
-          <div ref={loadMoreRef} className="flex justify-center py-8">
+          <div ref={loadMoreRef} className="flex justify-center py-12">
             {loading ? (
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-orange-600" />
+              <span className="text-cyan-500 font-mono text-xs tracking-widest animate-pulse">RETRIEVING PACKETS...</span>
             ) : (
-              <span className="text-gray-400 text-sm">Scroll for more</span>
+              <div className="h-px w-32 bg-gradient-to-r from-transparent via-slate-700 to-transparent relative">
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-slate-800 border border-slate-600" />
+              </div>
             )}
           </div>
         )}
 
         {!hasMore && processedItems.length > 0 && (
-          <div className="text-center py-12">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">✨ You&apos;re all caught up! ✨</p>
-            <Button onClick={refresh} variant="ghost" size="sm">
-              🔄 Explore more
-            </Button>
+          <div className="text-center py-16">
+            <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-slate-900 border border-slate-800 mb-4 text-slate-500">
+              ⎔
+            </div>
+            <p className="text-slate-500 font-mono text-xs tracking-widest">END OF DATA STREAM</p>
           </div>
         )}
 
         {!loading && processedItems.length === 0 && !error && (
-          <div className="text-center py-16">
-            <p className="text-4xl mb-4">📭</p>
-            <p className="text-gray-500 dark:text-gray-400">
+          <div className="text-center py-24 bg-slate-900/20 border border-slate-800/50 rounded-2xl backdrop-blur-sm">
+            <div className="text-slate-600 mb-4 text-3xl">∅</div>
+            <p className="text-slate-400 font-mono text-sm uppercase tracking-widest mb-6">
               {activeFilter === 'all'
-                ? 'No posts yet. Be the first!'
-                : `No ${activeFilter} posts found.`}
+                ? 'No telemetry signals detected.'
+                : `No signals matching [${activeFilter}] protocol.`}
             </p>
-            <Link href={createPath} className="inline-block mt-4">
-              <Button variant="primary" size="sm">
-                Create Post
-              </Button>
+            <Link href={createPath}>
+              <button className="px-6 py-2 border border-slate-700 text-slate-300 text-xs font-mono tracking-widest hover:bg-slate-800 hover:text-white transition-colors rounded">
+                GENERATE NEW SIGNAL
+              </button>
             </Link>
           </div>
         )}

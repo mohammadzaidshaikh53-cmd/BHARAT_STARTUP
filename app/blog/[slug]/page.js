@@ -3,7 +3,7 @@ import { supabase } from '@/lib/supabase-server';  // <-- CHANGED: was @/lib/sup
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import DOMPurify from 'isomorphic-dompurify';
+import { sanitizeHTML } from '@/lib/utils/sanitize';
 import { unstable_cache } from 'next/cache';
 import { Suspense } from 'react';
 import { Container } from '@/components/ui/Container';
@@ -15,9 +15,7 @@ import { Avatar } from '@/components/ui/Avatar';
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://bharatstartup.com';
 export const revalidate = 3600; // 1 hour ISR
 
-function sanitizeHtml(content) {
-  return DOMPurify.sanitize(content);
-}
+// sanitizeHTML is imported from @/lib/utils/sanitize
 
 function getImageUrl(url, { width = 1200, height, quality = 80 } = {}) {
   if (!url) return null;
@@ -61,7 +59,7 @@ const getPost = unstable_cache(
       const words = plainText.split(/\s+/).filter(Boolean).length;
       data.reading_time = Math.ceil(words / 200);
       data.word_count = words;
-      data.sanitized_content = sanitizeHtml(data.content);
+      data.sanitized_content = sanitizeHTML(data.content);
     }
     return data;
   },
