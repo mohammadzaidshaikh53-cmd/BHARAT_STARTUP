@@ -3,6 +3,7 @@
 
 import { useState } from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 
 /**
  * Enterprise Query Provider
@@ -58,6 +59,3 @@ export function QueryProvider({ children }) {
     </QueryClientProvider>
   );
 }
-
-// Lazy import devtools to avoid SSR issues
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';

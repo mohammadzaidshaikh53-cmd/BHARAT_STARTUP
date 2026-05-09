@@ -175,3 +175,192 @@ export async function getRFQStats(userId) {
     return { active: 0, total: 0, closed: 0 };
   }
 }
+
+// ============ QUOTE SYSTEM ============
+
+/**
+ * Submit a quote for an RFQ (supplier side)
+ */
+export async function submitQuote({ rfqId, price, unit, moq, leadTime, notes, deliveryTerms }) {
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) throw new Error('Authentication required');
+
+    const insertData = {
+      rfq_id: rfqId,
+      supplier_id: user.id,
+      price: price ? parseFloat(price) : null,
+      unit: unit?.trim() || 'unit',
+      moq: moq ? parseInt(moq, 10) : null,
+      lead_time_days: leadTime ? parseInt(leadTime, 10) : null,
+      notes: notes?.trim() || null,
+      delivery_terms: deliveryTerms?.trim() || null,
+      status: 'submitted',
+      created_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase.from('quotes').insert([insertData]).select('id').single();
+    if (error) throw error;
+
+    return { success: true, data };
+  } catch (err) {
+    console.error('[rfqService.submitQuote]', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Get quotes for an RFQ (buyer view)
+ */
+export async function getQuotesForRFQ(rfqId) {
+  try {
+    const { data, error } = await supabase
+      .from('quotes')
+      .select(`
+        *,
+        supplier:seller_profiles!supplier_id(full_name, company_name, trust_score, verification_status, whatsapp),
+        supplier_user:auth.users!supplier_id(email)
+      `)
+      .eq('rfq_id', rfqId)
+      .order('created_at', { ascending: true });
+
+    if (error) throw error;
+    return { quotes: data || [], success: true };
+  } catch (err) {
+    console.error('[rfqService.getQuotesForRFQ]', err);
+    return { quotes: [], success: false, error: err.message };
+  }
+}
+
+/**
+ * Get quotes submitted by a supplier (supplier view)
+ */
+export async function getMyQuotes() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { quotes: [], success: false };
+
+    const { data, error } = await supabase
+      .from('quotes')
+      .select(`
+        *,
+        rfq:requests(id, title, category, budget, is_active, user_id)
+      `)
+      .eq('supplier_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return { quotes: data || [], success: true };
+  } catch (err) {
+    console.error('[rfqService.getMyQuotes]', err);
+    return { quotes: [], success: false, error: err.message };
+  }
+}
+
+/**
+ * Update quote status (buyer action)
+ */
+export async function updateQuoteStatus(quoteId, status) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Authentication required');
+
+    const { error } = await supabase
+      .from('quotes')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', quoteId);
+
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error('[rfqService.updateQuoteStatus]', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Withdraw/delete a quote (supplier action)
+ */
+export async function withdrawQuote(quoteId) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Authentication required');
+
+    const { error } = await supabase
+      .from('quotes')
+      .delete()
+      .eq('id', quoteId)
+      .eq('supplier_id', user.id)
+      .eq('status', 'submitted');
+
+    if (error) throw error;
+    return { success: true };
+  } catch (err) {
+    console.error('[rfqService.withdrawQuote]', err);
+    return { success: false, error: err.message };
+  }
+}
+
+/**
+ * Check if current user has already quoted on an RFQ
+ */
+export async function hasUserQuoted(rfqId) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return false;
+
+    const { data, error } = await supabase
+      .from('quotes')
+      .select('id', { count: 'exact', head: true })
+      .eq('rfq_id', rfqId)
+      .eq('supplier_id', user.id)
+      .limit(1);
+
+    if (error) throw error;
+    return (data?.length || 0) > 0;
+  } catch (err) {
+    console.error('[rfqService.hasUserQuoted]', err);
+    return false;
+  }
+}
+
+/**
+ * Award a quote (buyer awards business to a supplier)
+ */
+export async function awardQuote(quoteId) {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('Authentication required');
+
+    // Update the selected quote to 'awarded'
+    const { error: updateError } = await supabase
+      .from('quotes')
+      .update({ status: 'awarded', updated_at: new Date().toISOString() })
+      .eq('id', quoteId);
+
+    if (updateError) throw updateError;
+
+    // Reject all other quotes for this RFQ
+    const { data: quote } = await supabase.from('quotes').select('rfq_id').eq('id', quoteId).single();
+    if (quote) {
+      await supabase
+        .from('quotes')
+        .update({ status: 'rejected', updated_at: new Date().toISOString() })
+        .eq('rfq_id', quote.rfq_id)
+        .neq('id', quoteId)
+        .eq('status', 'submitted');
+
+      // Also close the RFQ
+      await supabase
+        .from('requests')
+        .update({ is_active: false })
+        .eq('id', quote.rfq_id)
+        .eq('user_id', user.id);
+    }
+
+    return { success: true };
+  } catch (err) {
+    console.error('[rfqService.awardQuote]', err);
+    return { success: false, error: err.message };
+  }
+}

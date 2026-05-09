@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProductById } from '@/services/productService';
+import { useProductDetail } from '@/lib/queries/productQueries';
 
 function formatPrice(price) {
     if (!price) return '0';
@@ -54,56 +54,12 @@ export default function ProductDetailPage() {
         return String(params.id);
     }, [params]);
 
-    const [product, setProduct] = useState(null);
-
-    const [loading, setLoading] = useState(true);
-
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        if (!productId) return;
-
-        let mounted = true;
-
-        const controller = new AbortController();
-
-        async function loadProduct() {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const data = await getProductById(productId, controller.signal);
-
-                if (mounted) {
-                    setProduct(data);
-                }
-            } catch (err) {
-                if (err?.name === 'AbortError') return;
-
-                console.error('[ProductDetailPage Error]', err);
-
-                if (mounted) {
-                    setError(err?.message || 'Failed to load product.');
-                }
-            } finally {
-                if (mounted) {
-                    setLoading(false);
-                }
-            }
-        }
-
-        loadProduct();
-
-        return () => {
-            mounted = false;
-            controller.abort();
-        };
-    }, [productId]);
+    const { data: product, isLoading, error } = useProductDetail(productId);
 
     /**
      * LOADING
      */
-    if (loading) {
+    if (isLoading) {
         return (
             <main className="min-h-screen bg-gray-50 flex items-center justify-center">
                 <div className="animate-pulse flex flex-col items-center gap-4">

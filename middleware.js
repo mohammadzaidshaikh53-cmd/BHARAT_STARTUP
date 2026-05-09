@@ -97,13 +97,6 @@ export async function middleware(request) {
   }
 
   // Add security headers to response
-  const response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  });
-
-  // Apply security headers
   Object.entries(SECURITY_HEADERS).forEach(([key, value]) => {
     response.headers.set(key, value);
   });

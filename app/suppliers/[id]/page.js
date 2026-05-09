@@ -1,31 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+// app/suppliers/[id]/page.js — Supplier detail page
+// TanStack Query v5 migrated (lib/queries/supplierQueries.js)
+
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
-import { getSupplierProfile } from '@/services/supplierService';
+import { useSupplierProfile } from '@/lib/queries/supplierQueries';
 import TrustCard from '@/components/trust/TrustCard';
 import TrustBadge from '@/components/trust/TrustBadge';
 import { formatPrice, getRelativeTime } from '@/lib/utils/formatters';
 
 export default function SupplierProfilePage() {
   const params = useParams();
-  const [supplier, setSupplier] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { data: supplier, isLoading } = useSupplierProfile(params.id);
 
-  useEffect(() => {
-    if (!params?.id) return;
-    async function load() {
-      setLoading(true);
-      const data = await getSupplierProfile(params.id);
-      setSupplier(data);
-      setLoading(false);
-    }
-    load();
-  }, [params?.id]);
-
-  if (loading) return (
+  if (isLoading) return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
       <div className="animate-pulse flex flex-col items-center gap-4">
         <div className="w-16 h-16 bg-emerald-200 dark:bg-emerald-800 rounded-full" />

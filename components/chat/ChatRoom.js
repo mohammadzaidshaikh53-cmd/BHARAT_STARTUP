@@ -3,7 +3,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Avatar } from '@/components/common/Avatar';
 import { Composer } from './Composer';
@@ -11,6 +11,8 @@ import { MessageBubble } from './MessageBubble';
 import { TypingIndicator } from './TypingIndicator';
 import { Button } from '@/components/common/Button';
 import { ChevronLeftIcon, InformationCircleIcon } from '@heroicons/react/24/outline';
+
+const springConfig = { type: 'spring', stiffness: 350, damping: 28 };
 
 // Helper to get full error details
 function getErrorMessage(error) {
@@ -267,30 +269,51 @@ export function ChatRoom({ roomId, currentUserId, onOpenInfoPanel }) {
       <div className="sticky top-0 z-10 bg-bg-raised/80 backdrop-blur-sm border-b border-white/10">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => router.back()}
-              className="md:hidden"
+            <motion.div
+              whileHover={{ scale: 1.1 }}
+              transition={springConfig}
             >
-              <ChevronLeftIcon className="w-5 h-5" />
-            </Button>
-            <Avatar name={roomName} size={40} />
-            <div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => router.back()}
+                className="md:hidden"
+              >
+                <ChevronLeftIcon className="w-5 h-5" />
+              </Button>
+            </motion.div>
+            <motion.div
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={springConfig}
+            >
+              <Avatar name={roomName} size={40} />
+            </motion.div>
+            <motion.div
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ ...springConfig, delay: 0.1 }}
+            >
               <h2 className="font-semibold text-text-primary">{roomName}</h2>
               <p className="text-caption text-text-tertiary">
                 {roomDetails?.is_group ? 'Group chat' : 'Private conversation'}
               </p>
-            </div>
+            </motion.div>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onOpenInfoPanel}
-            aria-label="Room info"
+          <motion.div
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            transition={springConfig}
           >
-            <InformationCircleIcon className="w-5 h-5" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onOpenInfoPanel}
+              aria-label="Room info"
+            >
+              <InformationCircleIcon className="w-5 h-5" />
+            </Button>
+          </motion.div>
         </div>
       </div>
 

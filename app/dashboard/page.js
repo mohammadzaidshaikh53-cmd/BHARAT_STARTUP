@@ -1,17 +1,131 @@
 'use client';
 
-// app/dashboard/page.js — Enhanced tabbed dashboard
-// Preserves existing delete/manage logic, adds analytics and RFQ tracking
+// app/dashboard/page.js — Enterprise dashboard with operational intelligence
+// TanStack Query v5 migrated for RFQ stats + quotes
 
 import { useEffect, useState, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { formatPrice, getRelativeTime } from '@/lib/utils/formatters';
-import { getRFQStats } from '@/services/rfqService';
+import { useRFQStats, useMyQuotes } from '@/lib/queries/rfqQueries';
 import { calculateTrustScore, getProfileCompletionSteps } from '@/lib/trust/trustCalculator';
-import TrustBadge from '@/components/trust/TrustBadge';
+import TrustBadge, { TrustScoreRing } from '@/components/trust/TrustBadge';
+import { Container } from '@/components/ui/Container';
+import {
+  TrendingUp,
+  TrendingDown,
+  Eye,
+  MessageSquare,
+  Package,
+  FileText,
+  Sparkles,
+  ArrowUpRight,
+  ArrowDownRight,
+  Zap,
+  Award,
+  Clock,
+  CheckCircle2,
+  AlertCircle,
+  TrendingFlat,
+  Percent,
+  BarChart3,
+} from 'lucide-react';
+
+const springConfig = { type: 'spring', stiffness: 350, damping: 28 };
+
+// Animated counter hook
+function useAnimatedCounter(target, duration = 1000) {
+  const [value, setValue] = useState(0);
+  useEffect(() => {
+    let start = 0;
+    const increment = target / (duration / 16);
+    const timer = setInterval(() => {
+      start += increment;
+      if (start >= target) { setValue(target); clearInterval(timer); }
+      else setValue(Math.floor(start));
+    }, 16);
+    return () => clearInterval(timer);
+  }, [target, duration]);
+  return value;
+}
+
+// Stat card with physics
+function StatCard({ label, value, icon: Icon, color, trend, delay = 0 }) {
+  const animatedValue = useAnimatedCounter(value);
+  const [isHovered, setIsHovered] = useState(false);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 30, scale: 0.9 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ ...springConfig, delay }}
+      whileHover={{ y: -6, scale: 1.02, transition: springConfig }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-5 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 backdrop-blur-sm relative overflow-hidden"
+    >
+      <motion.div
+        animate={{ opacity: isHovered ? 0.3 : 0 }}
+        className={`absolute inset-0 bg-gradient-to-br ${color}`}
+      />
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-3">
+          <motion.div
+            whileHover={{ rotate: 15, scale: 1.1 }}
+            transition={springConfig}
+            className={`w-11 h-11 rounded-xl bg-gradient-to-br ${color} flex items-center justify-center text-white shadow-lg`}
+          >
+            <Icon className="w-5 h-5" />
+          </motion.div>
+          {trend !== undefined && (
+            <span className={`flex items-center gap-1 text-xs font-semibold ${trend >= 0 ? 'text-emerald-600' : 'text-red-500'}`}>
+              {trend >= 0 ? <ArrowUpRight className="w-3 h-3" /> : <ArrowDownRight className="w-3 h-3" />}
+              {Math.abs(trend)}%
+            </span>
+          )}
+        </div>
+        <p className="text-3xl font-black text-gray-900 dark:text-gray-100">{animatedValue.toLocaleString()}</p>
+        <p className="text-sm text-gray-500 mt-1 font-medium">{label}</p>
+      </div>
+    </motion.div>
+  );
+}
+
+// Trust score card with animated ring
+function TrustScoreCard({ score, delay = 0 }) {
+  const getTrustLevel = (s) => {
+    if (s >= 90) return { label: 'Excellent', color: '#10b981' };
+    if (s >= 70) return { label: 'Good', color: '#3b82f6' };
+    if (s >= 50) return { label: 'Fair', color: '#f59e0b' };
+    return { label: 'New', color: '#94a3b8' };
+  };
+  const level = getTrustLevel(score);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.8 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ ...springConfig, delay }}
+      className="bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-6 backdrop-blur-sm"
+    >
+      <div className="flex items-center gap-4">
+        <TrustScoreRing score={score} size={80} strokeWidth={6} showLabel={false} />
+        <div className="flex-1">
+          <span className="text-xs text-gray-500 font-medium">Trust Score</span>
+          <h3 className="text-2xl font-black text-gray-900 dark:text-gray-100">{score}/100</h3>
+          <span className="inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-full mt-1" style={{ backgroundColor: `${level.color}15`, color: level.color }}>
+            <Award className="w-3 h-3" />
+            {level.label}
+          </span>
+        </div>
+      </div>
+      <p className="text-xs text-gray-500 mt-4">Higher trust scores help your products rank higher in search results</p>
+    </motion.div>
+  );
+}
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -22,10 +136,24 @@ export default function DashboardPage() {
   const [products, setProducts] = useState([]);
   const [requests, setRequests] = useState([]);
   const [stats, setStats] = useState({ products: 0, views: 0, inquiries: 0, rfqActive: 0, rfqTotal: 0 });
+  const [operationalMetrics, setOperationalMetrics] = useState({
+    inquiryRate: 0,
+    avgViewsPerProduct: 0,
+    verifiedProducts: 0,
+    pendingVerification: 0,
+    responseRate: 0,
+    rfqResponseRate: 0,
+  });
   const [trustData, setTrustData] = useState(null);
   const [completion, setCompletion] = useState(null);
   const [deletingId, setDeletingId] = useState(null);
   const [lastDeleted, setLastDeleted] = useState(null);
+
+  // TanStack Query v5 — RFQ stats + quotes
+  const userId = user?.id || null;
+  const { data: rfqStatsData } = useRFQStats(userId);
+  const { data: quotesData, isLoading: quotesLoading } = useMyQuotes();
+  const quotes = quotesData?.quotes || [];
 
   const loadData = useCallback(async (userId) => {
     try {
@@ -44,9 +172,26 @@ export default function DashboardPage() {
       // Calculate stats
       const totalViews = (prods || []).reduce((s, p) => s + (p.product_stats?.views || 0), 0);
       const totalInquiries = (prods || []).reduce((s, p) => s + (p.product_stats?.inquiries || 0), 0);
-      const rfqStats = await getRFQStats(userId);
+      // Calculate stats — rfqStats from TanStack Query
+      setStats({ products: prods?.length || 0, views: totalViews, inquiries: totalInquiries, rfqActive: rfqStatsData?.active || 0, rfqTotal: rfqStatsData?.total || 0 });
 
-      setStats({ products: prods?.length || 0, views: totalViews, inquiries: totalInquiries, rfqActive: rfqStats.active, rfqTotal: rfqStats.total });
+      // Operational intelligence metrics
+      const verifiedCount = (prods || []).filter(p => p.verification_status === 'verified').length;
+      const pendingCount = (prods || []).filter(p => p.verification_status === 'pending').length;
+      const avgViews = prods?.length ? Math.round(totalViews / prods.length) : 0;
+      const inquiryRate = totalViews > 0 ? Math.round((totalInquiries / totalViews) * 100) : 0;
+      const activeRFQs = reqs?.filter(r => r.is_active).length || 0;
+      const respondedRFQs = reqs?.filter(r => r.responses_count > 0).length || 0;
+      const rfqResponseRate = activeRFQs > 0 ? Math.round((respondedRFQs / activeRFQs) * 100) : 0;
+
+      setOperationalMetrics({
+        inquiryRate,
+        avgViewsPerProduct: avgViews,
+        verifiedProducts: verifiedCount,
+        pendingVerification: pendingCount,
+        responseRate: 0, // placeholder for future WhatsApp response tracking
+        rfqResponseRate,
+      });
 
       // Trust score
       const trust = calculateTrustScore(profileData || {}, prods || []);
@@ -54,6 +199,11 @@ export default function DashboardPage() {
       setCompletion(getProfileCompletionSteps(profileData || {}));
     } catch (err) { console.error('[Dashboard]', err); }
   }, []);
+
+  // Sync rfqStats from TanStack Query into stats state
+  useEffect(() => {
+    setStats(prev => ({ ...prev, rfqActive: rfqStatsData?.active || 0, rfqTotal: rfqStatsData?.total || 0 }));
+  }, [rfqStatsData]);
 
   useEffect(() => {
     async function init() {
@@ -94,8 +244,11 @@ export default function DashboardPage() {
   const tabs = [
     { key: 'overview', label: '📊 Overview' },
     { key: 'products', label: `📦 Products (${stats.products})` },
-    { key: 'rfqs', label: `📋 RFQs (${stats.rfqActive})` },
+    { key: 'rfqs', label: `📋 My RFQs (${stats.rfqActive})` },
+    { key: 'quotes', label: '💰 My Quotes' },
   ];
+
+  // Load quotes only when tab is switched — now via TanStack Query (useMyQuotes)
 
   if (loading) return (
     <main className="min-h-screen bg-gray-50 dark:bg-gray-950 flex items-center justify-center">
@@ -126,53 +279,102 @@ export default function DashboardPage() {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8 overflow-x-auto pb-2">
-          {tabs.map(t => (
-            <button key={t.key} onClick={() => setActiveTab(t.key)} className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all ${activeTab === t.key ? 'bg-gray-900 dark:bg-white text-white dark:text-gray-900 shadow-md' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-gray-300'}`}>{t.label}</button>
+        {/* Tabs with Physics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={springConfig}
+          className="flex gap-2 mb-8 overflow-x-auto pb-2"
+        >
+          {tabs.map((t, i) => (
+            <motion.button
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              whileHover={{ scale: 1.05, y: -2 }}
+              whileTap={{ scale: 0.95 }}
+              className={`px-5 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all relative overflow-hidden ${
+                activeTab === t.key
+                  ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/25'
+                  : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-gray-700 hover:border-purple-500/30'
+              }`}
+            >
+              {t.label}
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
         {/* Overview Tab */}
         {activeTab === 'overview' && (
           <div className="space-y-8">
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {[
-                { label: 'Products', value: stats.products, icon: '📦', color: 'from-orange-500 to-amber-500' },
-                { label: 'Total Views', value: stats.views, icon: '👁️', color: 'from-blue-500 to-cyan-500' },
-                { label: 'Inquiries', value: stats.inquiries, icon: '💬', color: 'from-emerald-500 to-green-500' },
-                { label: 'Active RFQs', value: stats.rfqActive, icon: '📋', color: 'from-purple-500 to-violet-500' },
-              ].map(s => (
-                <div key={s.label} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 hover:shadow-lg transition-all">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="text-2xl">{s.icon}</span>
-                    <span className={`text-xs font-semibold px-2 py-1 rounded-full bg-gradient-to-r ${s.color} text-white`}>Live</span>
-                  </div>
-                  <p className="text-3xl font-black text-gray-900 dark:text-gray-100">{s.value}</p>
-                  <p className="text-sm text-gray-500 mt-1">{s.label}</p>
-                </div>
-              ))}
+            {/* Stats Grid with Physics - responsive 2→4 cols */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+              <StatCard label="Products" value={stats.products} icon={Package} color="from-orange-500 to-amber-500" trend={12} delay={0} />
+              <StatCard label="Total Views" value={stats.views} icon={Eye} color="from-blue-500 to-cyan-500" trend={8} delay={0.1} />
+              <StatCard label="Inquiries" value={stats.inquiries} icon={MessageSquare} color="from-emerald-500 to-green-500" trend={-3} delay={0.2} />
+              <StatCard label="Active RFQs" value={stats.rfqActive} icon={FileText} color="from-purple-500 to-violet-500" delay={0.3} />
             </div>
 
-            {/* Trust + Profile Completion */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {trustData && (
-                <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-bold text-gray-900 dark:text-gray-100">Your Trust Score</h3>
-                    <TrustBadge badge={trustData.badge} size="md" />
-                  </div>
-                  <div className="flex items-baseline gap-2 mb-3">
-                    <span className={`text-4xl font-black ${trustData.total >= 70 ? 'text-emerald-600' : trustData.total >= 40 ? 'text-amber-600' : 'text-gray-500'}`}>{trustData.total}</span>
-                    <span className="text-sm text-gray-500">/100</span>
-                  </div>
-                  <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-2.5 overflow-hidden">
-                    <div className={`h-full rounded-full transition-all duration-700 ${trustData.total >= 70 ? 'bg-emerald-500' : trustData.total >= 40 ? 'bg-amber-500' : 'bg-gray-400'}`} style={{ width: `${trustData.total}%` }} />
-                  </div>
-                  <p className="text-xs text-gray-500 mt-3">Higher trust scores help your products rank higher in search results</p>
+            {/* Operational Intelligence Panel - responsive grid */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ ...springConfig, delay: 0.35 }}
+              className="bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-4 sm:p-5"
+            >
+              <div className="flex items-center gap-2 mb-4">
+                <BarChart3 className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+                <h3 className="text-sm sm:text-base font-bold text-gray-900 dark:text-gray-100">Operational Metrics</h3>
+              </div>
+              <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-6 gap-2 sm:gap-3">
+                {/* Inquiry Rate */}
+                <div className="text-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-lg sm:text-2xl font-black text-emerald-600">{operationalMetrics.inquiryRate}%</div>
+                  <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Inquiry Rate</div>
                 </div>
-              )}
+                {/* Avg Views/Product */}
+                <div className="text-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-lg sm:text-2xl font-black text-blue-600">{operationalMetrics.avgViewsPerProduct}</div>
+                  <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Avg Views/Prod</div>
+                </div>
+                {/* Verified Products */}
+                <div className="text-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-lg sm:text-2xl font-black text-emerald-600">{operationalMetrics.verifiedProducts}</div>
+                  <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Verified</div>
+                </div>
+                {/* Pending Verification */}
+                <div className="text-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className={`text-lg sm:text-2xl font-black ${operationalMetrics.pendingVerification > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+                    {operationalMetrics.pendingVerification}
+                  </div>
+                  <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Pending</div>
+                </div>
+                {/* RFQ Response Rate */}
+                <div className="text-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className={`text-lg sm:text-2xl font-black ${operationalMetrics.rfqResponseRate >= 50 ? 'text-emerald-600' : operationalMetrics.rfqResponseRate > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+                    {operationalMetrics.rfqResponseRate}%
+                  </div>
+                  <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5">RFQ Response</div>
+                </div>
+                {/* Total Products */}
+                <div className="text-center p-2 sm:p-3 bg-gray-50 dark:bg-gray-700/50 rounded-xl">
+                  <div className="text-lg sm:text-2xl font-black text-purple-600">{stats.products}</div>
+                  <div className="text-[10px] sm:text-xs text-gray-500 mt-0.5">Total Listings</div>
+                </div>
+              </div>
+              <div className="mt-3 sm:mt-4 pt-2 sm:pt-3 border-t border-gray-100 dark:border-gray-700/50 flex items-center justify-between flex-col sm:flex-row gap-2">
+                <div className="flex items-center gap-2 text-xs sm:text-sm">
+                  <span className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+                  <span className="text-gray-500 text-xs">Verified listings improve trust scores</span>
+                </div>
+                <Link href="/profile" className="text-xs text-orange-600 font-semibold hover:text-orange-700 whitespace-nowrap">
+                  View Trust Details →
+                </Link>
+              </div>
+            </motion.div>
+
+            {/* Trust + Profile Completion - responsive grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+              {trustData && <TrustScoreCard score={trustData.total} delay={0.4} />}
 
               {completion && completion.percentage < 100 && (
                 <div className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-6">
@@ -196,23 +398,33 @@ export default function DashboardPage() {
               )}
             </div>
 
-            {/* Quick Actions */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Link href="/suppliers" className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 hover:shadow-lg transition-all group">
-                <span className="text-2xl mb-2 block">🏭</span>
-                <h4 className="font-bold text-gray-900 dark:text-gray-100 group-hover:text-emerald-600 transition-colors">Find Suppliers</h4>
-                <p className="text-sm text-gray-500 mt-1">Discover verified suppliers</p>
-              </Link>
-              <Link href="/rfq" className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 hover:shadow-lg transition-all group">
-                <span className="text-2xl mb-2 block">📋</span>
-                <h4 className="font-bold text-gray-900 dark:text-gray-100 group-hover:text-blue-600 transition-colors">Browse RFQs</h4>
-                <p className="text-sm text-gray-500 mt-1">Find buyer requirements</p>
-              </Link>
-              <Link href="/events" className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-5 hover:shadow-lg transition-all group">
-                <span className="text-2xl mb-2 block">🎪</span>
-                <h4 className="font-bold text-gray-900 dark:text-gray-100 group-hover:text-purple-600 transition-colors">Events & Expos</h4>
-                <p className="text-sm text-gray-500 mt-1">Upcoming trade shows</p>
-              </Link>
+            {/* Quick Actions with Physics - responsive grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+              {[
+                { href: '/suppliers', emoji: '🏭', title: 'Find Suppliers', desc: 'Discover verified suppliers', color: 'from-emerald-500 to-teal-500' },
+                { href: '/rfq', emoji: '📋', title: 'Browse RFQs', desc: 'Find buyer requirements', color: 'from-blue-500 to-cyan-500' },
+                { href: '/events', emoji: '🎪', title: 'Events & Expos', desc: 'Upcoming trade shows', color: 'from-purple-500 to-pink-500' },
+              ].map((action, i) => (
+                <motion.div
+                  key={action.href}
+                  initial={{ opacity: 0, y: 30 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ ...springConfig, delay: 0.5 + i * 0.1 }}
+                  whileHover={{ y: -4, transition: springConfig }}
+                >
+                  <Link href={action.href} className="block bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-5 hover:shadow-xl hover:shadow-purple-500/10 transition-all duration-300 group">
+                    <motion.div
+                      whileHover={{ scale: 1.15, rotate: 5 }}
+                      transition={springConfig}
+                      className={`w-12 h-12 rounded-xl bg-gradient-to-br ${action.color} flex items-center justify-center text-white text-xl mb-3 shadow-lg`}
+                    >
+                      {action.emoji}
+                    </motion.div>
+                    <h4 className="font-bold text-gray-900 dark:text-gray-100 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">{action.title}</h4>
+                    <p className="text-sm text-gray-500 mt-1">{action.desc}</p>
+                  </Link>
+                </motion.div>
+              ))}
             </div>
           </div>
         )}
@@ -228,10 +440,19 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="space-y-3">
-                {products.map(product => (
-                  <div key={product.id} className="bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 p-4 flex items-center gap-4 hover:shadow-md transition-all">
+                {products.map((product, idx) => (
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, x: -30 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...springConfig, delay: idx * 0.05 }}
+                    whileHover={{ x: 4, scale: 1.01, transition: springConfig }}
+                    className="bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-4 flex items-center gap-4 hover:shadow-lg transition-all duration-300"
+                  >
                     {product.image_url ? (
-                      <Image src={product.image_url} alt={product.name} width={80} height={80} className="w-20 h-20 object-cover rounded-xl shrink-0" />
+                      <motion.div whileHover={{ scale: 1.1 }} transition={springConfig} className="shrink-0">
+                        <Image src={product.image_url} alt={product.name} width={80} height={80} className="w-20 h-20 object-cover rounded-xl" />
+                      </motion.div>
                     ) : (
                       <div className="w-20 h-20 bg-gray-100 dark:bg-gray-700 rounded-xl flex items-center justify-center text-gray-400 shrink-0">📷</div>
                     )}
@@ -250,10 +471,18 @@ export default function DashboardPage() {
                       </div>
                     </div>
                     <div className="flex gap-2 shrink-0">
-                      <Link href={`/products/${product.id}/edit`} className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">✏️ Edit</Link>
-                      <button onClick={() => handleDelete(product.id)} disabled={deletingId === product.id} className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 dark:bg-red-500/10 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-all disabled:opacity-50">🗑️</button>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Link href={`/products/${product.id}/edit`} className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all inline-block">✏️ Edit</Link>
+                      </motion.div>
+                      <motion.button
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                        onClick={() => handleDelete(product.id)}
+                        disabled={deletingId === product.id}
+                        className="px-3 py-2 text-sm font-medium text-red-600 bg-red-50 dark:bg-red-500/10 rounded-xl hover:bg-red-100 dark:hover:bg-red-500/20 transition-all disabled:opacity-50"
+                      >🗑️</motion.button>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
               </div>
             )}
@@ -288,6 +517,78 @@ export default function DashboardPage() {
                       </span>
                     </div>
                   </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Quotes Tab */}
+        {activeTab === 'quotes' && (
+          <div>
+            {quotesLoading ? (
+              <div className="space-y-3">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="bg-white dark:bg-gray-800 rounded-xl p-5 animate-pulse border border-gray-100 dark:border-gray-700">
+                    <div className="h-5 bg-gray-200 dark:bg-gray-700 rounded w-1/3 mb-3" />
+                    <div className="h-4 bg-gray-100 dark:bg-gray-700 rounded w-1/2 mb-2" />
+                    <div className="h-3 bg-gray-100 dark:bg-gray-700 rounded w-1/4" />
+                  </div>
+                ))}
+              </div>
+            ) : quotes.length === 0 ? (
+              <div className="text-center py-16 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700">
+                <div className="text-5xl mb-4">💰</div>
+                <h3 className="text-xl font-bold text-gray-900 dark:text-gray-100 mb-2">No quotes submitted</h3>
+                <p className="text-gray-500 mb-4">Browse active RFQs and submit quotes to win business.</p>
+                <Link href="/rfq" className="text-orange-600 font-semibold">Browse RFQs →</Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {quotes.map((quote, idx) => (
+                  <motion.div
+                    key={quote.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ ...springConfig, delay: idx * 0.05 }}
+                    className="bg-white dark:bg-gray-800/80 rounded-2xl border border-gray-100 dark:border-gray-700/50 p-4 flex items-center gap-4 hover:shadow-lg transition-all"
+                  >
+                    <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 flex items-center justify-center text-white font-bold text-lg shrink-0">
+                      ₹
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <h4 className="font-bold text-gray-900 dark:text-gray-100 truncate">
+                          {quote.rfq?.title || 'RFQ Quote'}
+                        </h4>
+                        <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
+                          quote.status === 'submitted' ? 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' :
+                          quote.status === 'shortlisted' ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' :
+                          quote.status === 'awarded' ? 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' :
+                          'bg-gray-100 text-gray-500'
+                        }`}>
+                          {quote.status === 'submitted' ? '📨 Pending' :
+                           quote.status === 'shortlisted' ? '⭐ Shortlisted' :
+                           quote.status === 'awarded' ? '🏆 Awarded' :
+                           '✗ Rejected'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-3 text-sm text-gray-500">
+                        <span className="font-semibold text-emerald-600">₹{Number(quote.price).toLocaleString('en-IN')}/{quote.unit || 'unit'}</span>
+                        {quote.lead_time_days && <span>⏱️ {quote.lead_time_days} days</span>}
+                        {quote.moq && <span>📦 MOQ: {quote.moq}</span>}
+                        <span>{getRelativeTime(quote.created_at)}</span>
+                      </div>
+                    </div>
+                    <div className="shrink-0">
+                      <Link
+                        href={`/rfq/${quote.rfq_id}`}
+                        className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-600 transition-all"
+                      >
+                        View RFQ
+                      </Link>
+                    </div>
+                  </motion.div>
                 ))}
               </div>
             )}

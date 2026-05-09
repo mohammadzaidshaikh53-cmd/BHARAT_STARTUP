@@ -1,11 +1,10 @@
-// app/products/[id]/page.js
+// app/marketplace/product/[id]/page.js
 'use client';
 
-import { useEffect, useState } from 'react';
 import { useParams } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { getProductById } from '@/services/productService';
+import { useProductDetail } from '@/lib/queries/productQueries';
 
 // ─── Helpers (same style as category page) ─────────────────────────
 const formatPrice = (price) => {
@@ -95,48 +94,10 @@ export default function ProductDetailPage() {
     const params = useParams();
     const productId = params?.id;
 
-    const [product, setProduct] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-
-    useEffect(() => {
-        if (!productId) {
-            setLoading(false);
-            setError('No product ID provided.');
-            return;
-        }
-
-        let cancelled = false;
-        const fetchProduct = async () => {
-            try {
-                setLoading(true);
-                setError(null);
-
-                const data = await getProductById(productId);
-
-                if (!cancelled) {
-                    setProduct(data);
-                    setLoading(false);
-                }
-            } catch (err) {
-                if (!cancelled) {
-                    console.error('Error fetching product:', err);
-                    setError(
-                        err?.code === 'PGRST116' || err?.message?.includes('not found')
-                            ? 'Product not found'
-                            : err.message || 'Failed to load product details'
-                    );
-                    setLoading(false);
-                }
-            }
-        };
-
-        fetchProduct();
-        return () => { cancelled = true; };
-    }, [productId]);
+    const { data: product, isLoading, error } = useProductDetail(productId);
 
     // ─── Rendering ─────────────────────────────────────────────────
-    if (loading) return <ProductSkeleton />;
+    if (isLoading) return <ProductSkeleton />;
 
     if (error) {
         return (

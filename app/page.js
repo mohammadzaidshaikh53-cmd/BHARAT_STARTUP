@@ -7,7 +7,7 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { fetchPersonalizedFeed } from '@/lib/feed/feedClient';
+import { fetchPersonalizedFeed, normalizeFeedItem, normalizeFeedResponse } from '@/lib/feed/feedClient';
 import { useInView } from 'react-intersection-observer';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
@@ -60,49 +60,6 @@ function resolveContentType(item) {
   if (itemId.startsWith('d_')) return 'discussion';
 
   return 'blog';
-}
-
-function normalizeFeedItem(item) {
-  if (!item || typeof item !== 'object') return null;
-
-  const itemId = item.item_id ?? item.id ?? item.original_id ?? null;
-  if (!itemId) return null;
-
-  return {
-    item_id: itemId,
-    item_type: item.item_type ?? item.type ?? item.content_type ?? 'post',
-    title: item.title ?? '',
-    summary: item.summary ?? '',
-    author_id: item.author_id ?? null,
-    author_name: item.author_name ?? 'Anonymous',
-    created_at: item.created_at ?? null,
-    likes: item.likes ?? 0,
-    replies: item.replies ?? 0,
-    engagement_score: item.engagement_score ?? 0,
-    content_type: item.content_type ?? item.type ?? item.item_type ?? 'blog',
-    original_id: item.original_id ?? item.id ?? null,
-    personalized_score: item.personalized_score ?? item.score ?? 0,
-    tags: item.tags ?? [],
-    slug: item.slug ?? null,
-  };
-}
-
-function normalizeFeedResponse(payload) {
-  if (Array.isArray(payload)) {
-    return {
-      items: payload.map(normalizeFeedItem).filter(Boolean),
-      nextCursor: null,
-    };
-  }
-
-  if (payload && Array.isArray(payload.items)) {
-    return {
-      items: payload.items.map(normalizeFeedItem).filter(Boolean),
-      nextCursor: payload.nextCursor ?? null,
-    };
-  }
-
-  return { items: [], nextCursor: null };
 }
 
 // =============================================================================
@@ -163,7 +120,7 @@ function getContentConfig(item) {
 }
 
 // =============================================================================
-// useStableRef
+// useStableRef - stable callback ref (prevents stale closures in effects)
 // =============================================================================
 function useStableRef(value) {
   const ref = useRef(value);
@@ -174,7 +131,7 @@ function useStableRef(value) {
 }
 
 // =============================================================================
-// useCommunityFeed
+// useCommunityFeed (uses feedClient for data, UI state here)
 // =============================================================================
 function useCommunityFeed(userId) {
   const [items, setItems] = useState([]);
@@ -183,77 +140,56 @@ function useCommunityFeed(userId) {
   const [error, setError] = useState(null);
 
   const userIdRef = useStableRef(userId);
-  const hasMoreRef = useStableRef(hasMore);
-  const loadingRef = useStableRef(loading);
+  const hasMoreRef = useRef(true);
+  const loadingRef = useRef(false);
   const cursorRef = useRef({ score: Number.POSITIVE_INFINITY, id: null });
   const isFetchingRef = useRef(false);
   const prefetchCacheRef = useRef(null);
+  const cursorIdRef = useRef(null);
 
-  const fetchPage = useCallback(async (isRefresh = false) => {
+  const fetchPage = useCallback(async (reset = false) => {
     const currentUserId = userIdRef.current;
-    if (!currentUserId) return;
-    if (isFetchingRef.current) return;
-    if (!isRefresh && !hasMoreRef.current) return;
+    if (!currentUserId || isFetchingRef.current) return;
+    if (!reset && !hasMoreRef.current) return;
 
     isFetchingRef.current = true;
     setLoading(true);
+    setError(null);
 
     try {
-      const cursor = isRefresh
-        ? { score: Number.POSITIVE_INFINITY, id: null }
-        : cursorRef.current;
-      const cursorKey = `${cursor.score}_${cursor.id}`;
-
-      let payload = null;
-      if (prefetchCacheRef.current && prefetchCacheRef.current.cursorKey === cursorKey) {
-        payload = prefetchCacheRef.current.payload;
-        prefetchCacheRef.current = null;
-      }
-
-      if (!payload) {
-        payload = await fetchPersonalizedFeed({
-          userId: currentUserId,
-          limit: PAGE_SIZE,
-          cursorScore: cursor.score,
-          cursorId: cursor.id,
-          contentType: null,
-        });
-      }
-
-      const { items: fetchedItems, nextCursor } = normalizeFeedResponse(payload);
-
-      if (!Array.isArray(fetchedItems) || fetchedItems.length === 0) {
-        setHasMore(false);
-        return;
-      }
-
-      if (nextCursor?.score !== undefined && nextCursor?.id !== undefined) {
-        cursorRef.current = { score: nextCursor.score, id: nextCursor.id };
-      } else {
-        const last = fetchedItems[fetchedItems.length - 1];
-        if (last?.personalized_score !== undefined && last?.item_id !== undefined) {
-          cursorRef.current = { score: last.personalized_score, id: last.item_id };
-        }
-      }
-
-      setItems((prev) => {
-        const normalized = fetchedItems.filter(Boolean);
-
-        if (isRefresh) return normalized;
-
-        const existingIds = new Set(prev.map((i) => i.item_id));
-        return [...prev, ...normalized.filter((i) => i?.item_id && !existingIds.has(i.item_id))];
+      const payload = await fetchPersonalizedFeed({
+        userId: currentUserId,
+        limit: PAGE_SIZE,
+        cursorScore: reset ? Number.POSITIVE_INFINITY : cursorRef.current.score,
+        cursorId: reset ? null : cursorRef.current.id,
+        contentType: null,
+        isInitialLoad: reset,
       });
 
-      setHasMore(fetchedItems.length === PAGE_SIZE);
+      const { items: fetchedItems, nextCursor: computedNextCursor } = normalizeFeedResponse(payload);
+
+      if (reset) {
+        setItems(fetchedItems || []);
+      } else {
+        setItems((prev) => [...prev, ...(fetchedItems || [])]);
+      }
+
+      if (computedNextCursor) {
+        cursorRef.current = computedNextCursor;
+        cursorIdRef.current = computedNextCursor.id;
+        hasMoreRef.current = true;
+        setHasMore(true);
+      } else {
+        hasMoreRef.current = false;
+        setHasMore(false);
+      }
     } catch (err) {
-      console.error('Feed fetch error:', err?.message || err);
-      setError(err);
+      setError(err?.message || 'Feed load failed');
     } finally {
       setLoading(false);
       isFetchingRef.current = false;
     }
-  }, []);
+  }, [userIdRef]);
 
   const prefetchNextPage = useCallback(async () => {
     const currentUserId = userIdRef.current;
@@ -285,21 +221,23 @@ function useCommunityFeed(userId) {
     } catch (err) {
       console.warn('Prefetch failed:', err?.message);
     }
-  }, []);
+  }, [userIdRef]);
 
   const refresh = useCallback(() => {
     if (!userIdRef.current) return;
     setItems([]);
     cursorRef.current = { score: Number.POSITIVE_INFINITY, id: null };
+    cursorIdRef.current = null;
     prefetchCacheRef.current = null;
+    hasMoreRef.current = true;
     setHasMore(true);
     setError(null);
     fetchPage(true);
-  }, [fetchPage]);
+  }, [fetchPage, userIdRef]);
 
   useEffect(() => {
     if (userId) refresh();
-  }, [userId, refresh]);
+  }, [userId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return { items, loading, hasMore, error, fetchPage, refresh, prefetchNextPage };
 }

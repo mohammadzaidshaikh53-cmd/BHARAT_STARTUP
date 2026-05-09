@@ -2,9 +2,12 @@
 'use client';
 
 import { useEffect, useState, useCallback, useRef, useMemo } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '@/lib/supabase';
 import { Avatar } from '@/components/common/Avatar';
 import { cn } from '@/lib/utils';
+
+const springConfig = { type: 'spring', stiffness: 350, damping: 28 };
 
 const getRelativeTime = (timestamp) => {
   if (!timestamp) return '';
@@ -552,18 +555,36 @@ export function ChatList({ onSelectRoom, selectedRoomId, currentUserId }) {
             </div>
           ) : (
             <div className="divide-y divide-gray-100 dark:divide-white/[0.04]">
-              {filteredRooms.map((room) => (
-                <button
+              {filteredRooms.map((room, idx) => (
+                <motion.button
                   key={room.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ ...springConfig, delay: idx * 0.05 }}
+                  whileTap={{ scale: 0.98 }}
                   onClick={() => onSelectRoom(room.id)}
                   className={cn(
-                    'w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-150',
-                    selectedRoomId === room.id 
-                      ? 'bg-orange-50/60 dark:bg-orange-500/[0.04]' 
+                    'w-full flex items-center gap-3 px-4 py-3 text-left transition-all duration-150 relative overflow-hidden',
+                    selectedRoomId === room.id
+                      ? 'bg-gradient-to-r from-orange-500/10 to-amber-500/10 dark:from-orange-500/[0.08] dark:to-amber-500/[0.08]'
                       : 'hover:bg-gray-50 dark:hover:bg-white/[0.02]'
                   )}
                 >
-                  <Avatar name={room.displayName} size={42} />
+                  {/* Active indicator */}
+                  <motion.div
+                    layout
+                    className={cn(
+                      'absolute left-0 top-0 bottom-0 w-[3px]',
+                      selectedRoomId === room.id ? 'bg-orange-500' : 'bg-transparent'
+                    )}
+                  />
+
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    transition={springConfig}
+                  >
+                    <Avatar name={room.displayName} size={42} />
+                  </motion.div>
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between gap-2">
@@ -591,11 +612,16 @@ export function ChatList({ onSelectRoom, selectedRoomId, currentUserId }) {
                   </div>
 
                   {room.unreadCount > 0 && (
-                    <span className="flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-[10px] font-bold rounded-full">
+                    <motion.span
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ ...springConfig, delay: 0.1 }}
+                      className="flex-shrink-0 inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 bg-gradient-to-br from-orange-500 to-pink-500 text-white text-[10px] font-bold rounded-full shadow-lg shadow-orange-500/30"
+                    >
                       {room.unreadCount > 99 ? '99+' : room.unreadCount}
-                    </span>
+                    </motion.span>
                   )}
-                </button>
+                </motion.button>
               ))}
             </div>
           )}
