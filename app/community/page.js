@@ -240,12 +240,7 @@ export default function CommunityFeedPage() {
         <CommunityNavSection />
 
         {/* Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ ...springConfig, delay: 0.2 }}
-          className="flex gap-2 overflow-x-auto pb-3 mb-8 scrollbar-hide"
-        >
+        <div className="flex gap-2 overflow-x-auto pb-3 mb-8 scrollbar-hide">
           {filters.map((f) => (
             <button
               key={f.key}
